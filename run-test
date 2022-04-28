@@ -1,0 +1,15 @@
+#!/bin/bash
+
+EXE="./$1"
+VG_FLAGS="--leak-check=full --error-exitcode=1"
+
+if [ "$1" = "40a113-map_test" ]; then
+  "$EXE" | diff -w - lib/map_test.ans || exit 1
+  exit 0
+fi
+if [ "$1" = "c23b0a-hashmap_test" ]; then
+  "$EXE" | diff -w - lib/hashmap_test.ans || exit 1
+  exit 0
+fi
+
+valgrind $VG_FLAGS "$EXE" || exit 1
