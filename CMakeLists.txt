@@ -16,6 +16,7 @@ set(TICKET_TEST_SOURCES
   lib/result_test.cpp
   lib/map_test.cpp
   lib/hashmap_test.cpp
+  lib/file/bptree_test.cpp
 )
 
 foreach(test ${TICKET_TEST_SOURCES})

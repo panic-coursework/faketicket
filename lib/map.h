@@ -41,7 +41,7 @@ class MapValueCompare {
 
 } // namespace internal
 
-template <typename KeyType, typename ValueType, typename Compare = internal::LessOp<KeyType>>
+template <typename KeyType, typename ValueType, typename Compare = internal::LessOp>
 class map {
  public:
   using value_type = Pair<const KeyType, ValueType>;

@@ -24,7 +24,13 @@ namespace ticket::file {
  *
  * constraints: KeyType and ValueType need to be comparable.
  */
-template <typename KeyType, typename ValueType, size_t szChunk = kDefaultSzChunk>
+template <
+  typename KeyType,
+  typename ValueType,
+  typename CmpKey = Less<>,
+  typename CmpValue = Less<>,
+  size_t szChunk = kDefaultSzChunk
+>
 class BpTree {
  private:
   struct Node;
@@ -63,6 +69,8 @@ class BpTree {
 
  private:
   File<szChunk> file_;
+  CmpKey cmpKey_;
+  CmpValue cmpValue_;
 
   // data structures
   /// store key and value together to support dupe keys. this is the structure that is actually stored.
@@ -70,21 +78,24 @@ class BpTree {
     KeyType key;
     ValueType value;
     auto operator< (const Pair &that) const -> bool {
-      if (key < that.key || that.key < key) return key < that.key;
-      return value < that.value;
+      CmpKey cmpKey_;
+      CmpValue cmpValue_;
+      if (!cmpKey_.equals(key, that.key)) return cmpKey_.lt(key, that.key);
+      return cmpValue_.lt(value, that.value);
     }
-  };
-  /// compares a Payload and a KeyType that key alone is greater than all payloads with this key
-  class KeyComparator_ {
-   public:
-    auto operator() (const Pair &lhs, const KeyType &rhs) const -> bool { return !(rhs < lhs.key); }
-    auto operator() (const KeyType &lhs, const Pair &rhs) const -> bool { return lhs < rhs.key; }
   };
   /// compares a Payload and a KeyType that key alone is less than all payloads with this key
   class KeyComparatorLess_ {
    public:
-    auto operator() (const Pair &lhs, const KeyType &rhs) const -> bool { return lhs.key < rhs; }
-    auto operator() (const KeyType &lhs, const Pair &rhs) const -> bool { return !(rhs.key < lhs); }
+    auto operator() (const Pair &lhs, const KeyType &rhs) -> bool {
+      return cmpKey_.lt(lhs.key, rhs);
+    }
+    auto operator() (const KeyType &lhs, const Pair &rhs) -> bool {
+      return cmpKey_.geq(rhs.key, lhs);
+    }
+   private:
+    CmpKey cmpKey_;
+    CmpValue cmpValue_;
   };
 
   using NodeId = unsigned int;
@@ -252,7 +263,7 @@ class BpTree {
     if (node.type == kRoot) {
       if (node.length() > 1 || node.leaf()) return;
       Node onlyChild = Node::get(file_, node.children()[0]);
-      memcpy(node._start, onlyChild._start, node._end - node._start);
+      memcpy(&node, &onlyChild, sizeof(node));
       node.type = kRoot;
       return;
     }
@@ -336,7 +347,7 @@ class BpTree {
   auto addValuesToVectorForAllKeyFrom_ (Vector<ValueType> &vec, const KeyType &key, Node node, int first) -> void {
     // we need to declare i outside to see if we have advanced to the last element
     int i = first;
-    for (; i < node.length() && equals(node.entries()[i].key, key); ++i) vec.push_back(node.entries()[i].value);
+    for (; i < node.length() && cmpKey_.equals(node.entries()[i].key, key); ++i) vec.push_back(node.entries()[i].value);
     if (i == node.length() && node.next() != 0) addValuesToVectorForAllKeyFrom_(vec, key, Node::get(file_, node.next()), 0);
   }
   auto addEntriesToVector_ (Vector<ticket::Pair<KeyType, ValueType>> &vec, Node node) -> void {
@@ -345,8 +356,13 @@ class BpTree {
   }
   auto findFirstChildWithKey_ (const KeyType &key, Node &node) -> ticket::Pair<Node, Optional<Node>> {
     TICKET_ASSERT(node.type != kRecord);
-    size_t ixGreater = upperBound(node.splits().content, node.splits().content + node.length(), key, KeyComparatorLess_()) - node.splits().content;
-    bool hasCdr = ixGreater < node.length() && equals(node.splits()[ixGreater].key, key);
+    size_t ixGreater = upperBound(
+      node.splits().content,
+      node.splits().content + node.length(),
+      key,
+      Less<KeyComparatorLess_>()
+    ) - node.splits().content;
+    bool hasCdr = ixGreater < node.length() && cmpKey_.equals(node.splits()[ixGreater].key, key);
     auto cdr = hasCdr ? Optional<Node>(Node::get(file_, node.children()[ixGreater])) : Optional<Node>(unit);
     size_t ix = ixGreater == 0 ? ixGreater : ixGreater - 1;
     return { Node::get(file_, node.children()[ix]), cdr };
@@ -407,10 +423,15 @@ class BpTree {
       if (res) return res;
       return findOne_(key, *cdr);
     }
-    size_t ix = upperBound(node.entries().content, node.entries().content + node.length(), key, KeyComparatorLess_()) - node.entries().content;
+    size_t ix = upperBound(
+      node.entries().content,
+      node.entries().content + node.length(),
+      key,
+      Less<KeyComparatorLess_>()
+    ) - node.entries().content;
     if (ix >= node.length()) return unit;
     Pair entry = node.entries()[ix];
-    if (!equals(entry.key, key)) return unit;
+    if (!cmpKey_.equals(entry.key, key)) return unit;
     return entry.value;
   }
   auto includes_ (const Pair &entry, Node node) -> bool {
@@ -427,7 +448,12 @@ class BpTree {
       if (!res.empty()) return res;
       return findMany_(key, *cdr);
     }
-    size_t ix = upperBound(node.entries().content, node.entries().content + node.length(), key, KeyComparatorLess_()) - node.entries().content;
+    size_t ix = upperBound(
+      node.entries().content,
+      node.entries().content + node.length(),
+      key,
+      Less<KeyComparatorLess_>()
+    ) - node.entries().content;
     if (ix >= node.length()) return {};
     Vector<ValueType> res;
     addValuesToVectorForAllKeyFrom_(res, key, node, ix);
