@@ -48,22 +48,31 @@ class Pair {
 };
 
 /// Comparison utilities.
-template <typename T, typename Lt>
+template <typename Lt>
 class Cmp {
  public:
-  auto equals (const T &lhs, const T &rhs) -> bool {
+  template <typename T, typename U>
+  auto equals (const T &lhs, const U &rhs) -> bool {
     return !lt_(lhs, rhs) && !lt_(rhs, lhs);
   }
-  auto lt (const T &lhs, const T &rhs) -> bool {
+  template <typename T, typename U>
+  auto ne (const T &lhs, const U &rhs) -> bool {
+    return !equals(lhs, rhs);
+  }
+  template <typename T, typename U>
+  auto lt (const T &lhs, const U &rhs) -> bool {
     return lt_(lhs, rhs);
   }
-  auto gt (const T &lhs, const T &rhs) -> bool {
+  template <typename T, typename U>
+  auto gt (const T &lhs, const U &rhs) -> bool {
     return lt_(rhs, lhs);
   }
-  auto leq (const T &lhs, const T &rhs) -> bool {
+  template <typename T, typename U>
+  auto leq (const T &lhs, const U &rhs) -> bool {
     return !gt(lhs, rhs);
   }
-  auto geq (const T &lhs, const T &rhs) -> bool {
+  template <typename T, typename U>
+  auto geq (const T &lhs, const U &rhs) -> bool {
     return !lt(lhs, rhs);
   }
  private:
@@ -72,16 +81,17 @@ class Cmp {
 
 namespace internal {
 
-template <typename T>
 struct LessOp {
-  auto operator() (const T &lhs, const T &rhs) const -> bool {
+  template <typename T, typename U>
+  auto operator() (const T &lhs, const U &rhs) const -> bool {
     return lhs < rhs;
   }
 };
 
-template <typename T, typename Lt>
+template <typename Lt>
 struct GreaterOp {
-  auto operator() (const T &lhs, const T &rhs) const -> bool {
+  template <typename T, typename U>
+  auto operator() (const T &lhs, const U &rhs) const -> bool {
     return lt(rhs, lhs);
   }
   Lt lt;
@@ -89,10 +99,10 @@ struct GreaterOp {
 
 } // namespace internal
 
-template <typename T, typename Lt = internal::LessOp<T>>
-using Less = Cmp<T, Lt>;
-template <typename T, typename Lt = internal::LessOp<T>>
-using Greater = Cmp<T, internal::GreaterOp<T, Lt>>;
+template <typename Lt = internal::LessOp>
+using Less = Cmp<Lt>;
+template <typename Lt = internal::LessOp>
+using Greater = Cmp<internal::GreaterOp<Lt>>;
 
 } // namespace ticket
 

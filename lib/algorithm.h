@@ -3,36 +3,16 @@
 #define TICKET_LIB_ALGORITHM_H_
 
 #include <type_traits>
+#include <iterator>
 
 #include "utility.h"
 
 namespace ticket {
 
-template <typename Iterator>
-auto distance (Iterator first, Iterator last) -> int {
-  int distance = 0;
-  while (first != last) {
-    ++distance;
-    ++first;
-  }
-  return distance;
-}
-template <typename Iterator, typename = decltype(declval<Iterator>() - declval<Iterator>())>
-auto distance (Iterator first, Iterator last) -> int {
-  return last - first;
-}
-
-template <typename Iterator>
-auto advance (Iterator base, int steps) -> void {
-  while (steps-- > 0) ++base;
-}
-template <typename Iterator, typename = decltype(declval<Iterator>() += declval<int>())>
-auto advance (Iterator base, int steps) -> void {
-  base += steps;
-}
+using std::distance, std::advance;
 
 #define TICKET_ALGORIGHM_DEFINE_BOUND_FUNC(name, cf) \
-template<class Iterator, class T, class Compare = Less<T>> \
+template<class Iterator, class T, class Compare = Less<>> \
 auto name (Iterator first, Iterator last, const T &value, Compare cmp = {}) -> Iterator { \
   int length = distance(first, last); \
   while (length != 0) { \
@@ -49,7 +29,7 @@ auto name (Iterator first, Iterator last, const T &value, Compare cmp = {}) -> I
   return first; \
 }
 TICKET_ALGORIGHM_DEFINE_BOUND_FUNC(upperBound, geq)
-TICKET_ALGORIGHM_DEFINE_BOUND_FUNC(lowerBound, ge)
+TICKET_ALGORIGHM_DEFINE_BOUND_FUNC(lowerBound, gt)
 #undef TICKET_ALGORIGHM_DEFINE_BOUND_FUNC
 
 } // namespace ticket

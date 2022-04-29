@@ -12,7 +12,7 @@
 namespace ticket::file {
 
 /// A sorted array with utility functions and bound checks.
-template <typename T, size_t maxLength, typename Cmp = Less<T>>
+template <typename T, size_t maxLength, typename Cmp = Less<>>
 struct Set {
  private:
   auto boundsCheck_ (size_t index) -> void {
@@ -76,6 +76,23 @@ struct Set {
   }
   /// clears the set.
   auto clear () -> void { length = 0; }
+
+  /// copies a portion of another set to this.
+  void copyFrom (const Set &other, size_t ixFrom, size_t ixTo, size_t count) {
+    if (this == &other) {
+      memmove(
+        &content[ixTo],
+        &content[ixFrom],
+        count * sizeof(content[0])
+      );
+    } else {
+      memcpy(
+        &content[ixTo],
+        &other.content[ixFrom],
+        count * sizeof(content[0])
+      );
+    }
+  }
 
   auto operator[] (size_t index) -> T & {
     boundsCheck_(index);

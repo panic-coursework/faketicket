@@ -13,7 +13,7 @@ namespace ticket::file {
  * An on-stack array with utility functions and bound checks.
  * The value type needs to be trivial.
  */
-template <typename T, size_t maxLength, typename Cmp = Less<T>>
+template <typename T, size_t maxLength, typename Cmp = Less<>>
 struct Array {
  private:
   auto boundsCheck_ (size_t index) -> void {
@@ -123,9 +123,9 @@ struct Array {
     return result;
   }
   /// pushes after the last element.
-  auto push (const T &object) -> T { insert(object, length); }
+  auto push (const T &object) -> void { insert(object, length); }
   /// pushes before the first element.
-  auto unshift (const T &object) -> T { insert(object, 0); }
+  auto unshift (const T &object) -> void { insert(object, 0); }
 
   /// calls the callback for each element in the array.
   auto forEach (const std::function<void (const T &)> &callback) -> T {

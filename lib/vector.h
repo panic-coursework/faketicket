@@ -40,7 +40,7 @@ class Vector {
     // if these two iterators point to different vectors, throw invaild_iterator.
     auto operator- (const iterator &rhs) const -> int {
       if (home_ != rhs.home_) throw Exception("invalid operation");
-      return ptr_ = rhs.ptr_;
+      return ptr_ - rhs.ptr_;
     }
     auto operator+= (const int &n) -> iterator & {
       ptr_ += n;
@@ -62,6 +62,12 @@ class Vector {
      */
     auto operator!= (const iterator &rhs) const -> bool { return !(*this == rhs); }
     auto operator!= (const const_iterator &rhs) const -> bool { return !(*this == rhs); }
+    auto operator< (const iterator &rhs) const -> bool {
+      return **this < *rhs;
+    }
+    auto operator< (const const_iterator &rhs) const -> bool {
+      return **this < *rhs;
+    }
     friend class const_iterator;
     friend class Vector;
   };
@@ -86,7 +92,7 @@ class Vector {
     }
     auto operator- (const const_iterator &rhs) const -> int {
       if (home_ != rhs.home_) throw Exception("invalid operation");
-      return ptr_ = rhs.ptr_;
+      return ptr_ - rhs.ptr_;
     }
     auto operator+= (const int &n) -> const_iterator & {
       ptr_ += n;
@@ -102,6 +108,12 @@ class Vector {
     auto operator== (const const_iterator &rhs) const -> bool { return ptr_ == rhs.ptr_; }
     auto operator!= (const iterator &rhs) const -> bool { return !(*this == rhs); }
     auto operator!= (const const_iterator &rhs) const -> bool { return !(*this == rhs); }
+    auto operator< (const iterator &rhs) const -> bool {
+      return **this < *rhs;
+    }
+    auto operator< (const const_iterator &rhs) const -> bool {
+      return **this < *rhs;
+    }
     friend class iterator;
     friend class Vector;
   };
