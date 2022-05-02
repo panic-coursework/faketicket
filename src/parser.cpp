@@ -115,14 +115,14 @@ auto parseCommand (std::string &str)
         auto values = split(val, '|');
         res.durations.reserve(values.size());
         for (auto &str : values) {
-          res.durations.push_back(Duration(str.data()));
+          res.durations.push_back(Duration(atoi(str.data())));
         }
       } else if (arg == "-o") {
         std::string val = argv[++i].data();
         auto values = split(val, '|');
         res.stopoverTimes.reserve(values.size());
         for (auto &str : values) {
-          res.stopoverTimes.push_back(Duration(str.data()));
+          res.stopoverTimes.push_back(Duration(atoi(str.data())));
         }
       } else if (arg == "-d") {
         std::string val = argv[++i].data();

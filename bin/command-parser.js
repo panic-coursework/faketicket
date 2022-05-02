@@ -22,7 +22,8 @@ const getValue = (type, varname) => {
   if (type === 'int') return `atoi(${varname})`
   if (type === 'char') return `*${varname}`
   if (type === 'SortType') return `${varname}[0] == 't' ? kTime : kCost`
-  if ([ 'Date', 'Duration', 'Instant' ].includes(type)) return `${type}(${varname})`
+  if (type === 'Duration') return `Duration(atoi(${varname}))`
+  if ([ 'Date', 'Instant' ].includes(type)) return `${type}(${varname})`
   return varname
 }
 
