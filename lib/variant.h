@@ -101,6 +101,7 @@ class Variant {
     if (is<T>()) return &get_<T>();
     return nullptr;
   }
+  /// if the current state is of type T, return it. else null.
   template <typename T>
   auto get () const -> const T * {
     if (is<T>()) return &get_<T>();
@@ -112,6 +113,7 @@ class Variant {
     if (ix_ != ix) return nullptr;
     return &get_<typename Traits::template NthType<ix>>();
   }
+  /// if the current state is of index ix, return it. else null.
   template <int ix>
   auto get () const -> const typename Traits::template NthType<ix> * {
     if (ix_ != ix) return nullptr;
@@ -119,6 +121,8 @@ class Variant {
   }
 
   /**
+   * @brief visits the variant using a polymorphic functor.
+   *
    * pass in a polymorphic visitor function, and we will
    * call it with the correct type. If the current type is
    * T, then we would call f(T &). Note that this method

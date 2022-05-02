@@ -13,6 +13,10 @@
 build
 *_test
 
+docs/html
+docs/xml
+docs/latex
+
 node_modules
 
 DartConfiguration.tcl
