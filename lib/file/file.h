@@ -1,4 +1,4 @@
-/// This file defines several basic file-based utilities.
+// This file defines several basic file-based utilities.
 #ifndef TICKET_LIB_FILE_FILE_H_
 #define TICKET_LIB_FILE_FILE_H_
 
@@ -15,13 +15,16 @@
 #include "utility.h"
 #include "exception.h"
 
+/// File utilities
 namespace ticket::file {
 
 constexpr size_t kDefaultSzChunk = 4096;
 
 /**
- * a chunked file storage with manual garbage collection,
- * with chunk size of szChunk and a cache powered by
+ * @brief A chunked file storage with manual garbage
+ * collection.
+ *
+ * It is of chunk size of szChunk and has cache powered by
  * HashMap.
  */
 template <size_t szChunk = kDefaultSzChunk, typename Meta = Unit>
@@ -30,7 +33,9 @@ class File {
   class Metadata;
  public:
   /**
-   * initializes the file at filename. Not thread-safe.
+   * @brief initializes the file at filename.
+   *
+   * it is not thread-safe.
    *
    * @param filename the file to open
    * @param initializer callback called on the creation of
@@ -149,7 +154,9 @@ class File {
 };
 
 /**
- * an opinionated utility base class for the objects to be stored.
+ * @brief an opinionated utility base class for the objects
+ * to be stored.
+ *
  * it handles get, update, and push for the object.
  */
 template <typename T, size_t szChunk = kDefaultSzChunk>
@@ -159,7 +166,9 @@ class ManagedObject {
   virtual ~ManagedObject () = default;
 
   /**
-   * the unique immutable numeral identifier of the object.
+   * @brief the unique immutable numeral identifier of the
+   * object.
+   *
    * this identifier would not change on update, but may be
    * reused when deleted.
    */
@@ -176,9 +185,10 @@ class ManagedObject {
   }
 
   /**
-   * saves the object into the file. The object needs to be
-   * new, i.e. not saved before. To update the object after
-   * an modification, use update().
+   * @brief saves the object into the file.
+   *
+   * The object needs to be new, i.e. not saved before. To
+   * update the object after a modification, use update().
    */
   auto save () -> void {
     if (id_ != -1) throw Exception("Already saved");

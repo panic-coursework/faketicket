@@ -1,6 +1,10 @@
-/// This file defines several common utilities.
+// This file defines several common utilities.
 #ifndef TICKET_LIB_UTILITY_H_
 #define TICKET_LIB_UTILITY_H_
+
+#include <iostream>
+
+#include "vector.h"
 
 #ifdef TICKET_DEBUG
 #include <cassert>
@@ -10,6 +14,24 @@
 #endif // TICKET_DEBUG
 
 namespace ticket {
+
+/**
+ * @brief splits the string with sep into several substrings.
+ *
+ * this function mutates the incoming string to make sure
+ * the result is properly zero-terminated.
+ *
+ * the lifetime of the return value is the lifetime of the
+ * incoming string; that is to say, you need to keep the
+ * original string from destructured in order to use the
+ * result.
+ */
+auto split (std::string &str, char sep)
+  -> Vector<std::string_view>;
+
+/// copies the strings in vec into an array of real strings.
+auto copyStrings (const Vector<std::string_view> &vec)
+  -> Vector<std::string>;
 
 /// An empty class, used at various places.
 struct Unit {
@@ -79,25 +101,7 @@ class Cmp {
   Lt lt_;
 };
 
-namespace internal {
-
-struct LessOp {
-  template <typename T, typename U>
-  auto operator() (const T &lhs, const U &rhs) const -> bool {
-    return lhs < rhs;
-  }
-};
-
-template <typename Lt>
-struct GreaterOp {
-  template <typename T, typename U>
-  auto operator() (const T &lhs, const U &rhs) const -> bool {
-    return lt(rhs, lhs);
-  }
-  Lt lt;
-};
-
-} // namespace internal
+#include "internal/cmp.inc"
 
 template <typename Lt = internal::LessOp>
 using Less = Cmp<Lt>;

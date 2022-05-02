@@ -9,9 +9,10 @@
 namespace ticket::file {
 
 /**
- * A wrapper for const char * with utility functions and
- * type conversions. the trailing zero is not counted in
- * maxLength.
+ * @brief A wrapper for const char * with utility functions
+ * and type conversions.
+ *
+ * the trailing zero is not counted in maxLength.
  */
 template <int maxLength>
 struct Varchar {

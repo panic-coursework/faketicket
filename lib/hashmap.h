@@ -14,20 +14,11 @@
 
 namespace ticket {
 
-static constexpr unsigned long long pow2[] = { 1ULL << 0, 1ULL << 1, 1ULL << 2, 1ULL << 3, 1ULL << 4, 1ULL << 5, 1ULL << 6, 1ULL << 7, 1ULL << 8, 1ULL << 9, 1ULL << 10, 1ULL << 11, 1ULL << 12, 1ULL << 13, 1ULL << 14, 1ULL << 15, 1ULL << 16, 1ULL << 17, 1ULL << 18, 1ULL << 19, 1ULL << 20, 1ULL << 21, 1ULL << 22, 1ULL << 23, 1ULL << 24, 1ULL << 25, 1ULL << 26, 1ULL << 27, 1ULL << 28, 1ULL << 29, 1ULL << 30, 1ULL << 31, 1ULL << 32, 1ULL << 33, 1ULL << 34, 1ULL << 35, 1ULL << 36, 1ULL << 37, 1ULL << 38, 1ULL << 39, 1ULL << 40, 1ULL << 41, 1ULL << 42, 1ULL << 43, 1ULL << 44, 1ULL << 45, 1ULL << 46, 1ULL << 47, 1ULL << 48, 1ULL << 49, 1ULL << 50, 1ULL << 51, 1ULL << 52, 1ULL << 53, 1ULL << 54, 1ULL << 55, 1ULL << 56, 1ULL << 57, 1ULL << 58, 1ULL << 59, 1ULL << 60, 1ULL << 61, 1ULL << 62, 1ULL << 63 };
-// mask = x => (1n << BigInt(x)) - 1n
-// console.log(Array.from(Array(64).keys()).map(mask).join(', '))
-static constexpr unsigned long long mask[] = { 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383, 32767, 65535, 131071, 262143, 524287, 1048575, 2097151, 4194303, 8388607, 16777215, 33554431, 67108863, 134217727, 268435455, 536870911, 1073741823, 2147483647, 4294967295, 8589934591, 17179869183, 34359738367, 68719476735, 137438953471, 274877906943, 549755813887, 1099511627775, 2199023255551, 4398046511103, 8796093022207, 17592186044415, 35184372088831, 70368744177663, 140737488355327, 281474976710655, 562949953421311, 1125899906842623, 2251799813685247, 4503599627370495, 9007199254740991, 18014398509481983, 36028797018963967, 72057594037927935, 144115188075855871, 288230376151711743, 576460752303423487, 1152921504606846975, 2305843009213693951, 4611686018427387903, 9223372036854775807 };
-
-inline constexpr unsigned rehashMagic1 = 1162192769;
-inline constexpr unsigned rehashMagic2 = 3717357010;
-template <typename T>
-auto rehash (T value) -> unsigned {
-  if ((value & pow2[2]) == 0) return value ^ rehashMagic1;
-  return value ^ rehashMagic2;
-}
+#include "internal/rehash.inc"
 
 /**
+ * @brief An unordered hash-based map.
+ *
  * In HashMap, iteration ordering is differ from map,
  * which is the order in which keys were inserted into the map.
  * You should maintain a doubly-linked list running through all
@@ -171,12 +162,12 @@ template <
     clear();
     capacity_ = other.capacity_;
     size_ = other.size_;
-    store_ = new ListNode[pow2[capacity_]];
+    store_ = new ListNode[internal::pow2[capacity_]];
     const ListNode *node = &other.pivot_;
     for (int i = 0; i < size_; ++i) {
       node = node->next_;
       Node *newNode = new Node(*(node->self));
-      int ix = newNode->hash & mask[capacity_];
+      int ix = newNode->hash & internal::mask[capacity_];
       newNode->hashList.insertBefore(&store_[ix]);
       newNode->iteratorList.insertBefore(&pivot_);
     }
@@ -244,14 +235,14 @@ template <
     auto &[ k, _ ] = value;
     auto hash = hash_(k);
     if (capacity_ > 0) {
-      int ix = hash & mask[capacity_];
+      int ix = hash & internal::mask[capacity_];
       if (store_[ix].next() != nullptr) {
         Node *node = store_[ix].next()->find(k);
         if (node != nullptr) return { { &node->iteratorList, this }, false };
       }
     }
     growIfNeeded_();
-    int ix = hash & mask[capacity_];
+    int ix = hash & internal::mask[capacity_];
     Node *node = new Node(value, hash);
     node->hashList.insertBefore(&store_[ix]);
     node->iteratorList.insertBefore(&pivot_);
@@ -290,7 +281,7 @@ template <
    */
   auto find (const Key &key) -> iterator {
     if (empty()) return end();
-    auto ix = hash_(key) & mask[capacity_];
+    auto ix = hash_(key) & internal::mask[capacity_];
     if (store_[ix].next() == nullptr) return end();
     Node *node = store_[ix].next()->find(key);
     if (node == nullptr) return end();
@@ -344,11 +335,11 @@ template <
   constexpr static int kThreshold_ = 2;
   Hash hash0_;
   auto hash_ (const Key &key) const -> unsigned {
-    return rehash(hash0_(key));
+    return internal::rehash(hash0_(key));
   }
   auto growIfNeeded_ () -> void {
     auto capacityNeeded = static_cast<unsigned long long>((size_ + 1) * kThreshold_);
-    if (capacityNeeded > pow2[capacity_]) grow_();
+    if (capacityNeeded > internal::pow2[capacity_]) grow_();
   }
   auto grow_ () -> void {
     if (capacity_ == 0) {
@@ -357,11 +348,11 @@ template <
       return;
     }
     int newCapacity = capacity_ + 1;
-    auto prospective = new ListNode[pow2[newCapacity]];
+    auto prospective = new ListNode[internal::pow2[newCapacity]];
     auto node = &pivot_;
     for (int i = 0; i < size_; ++i) {
       node = node->next_;
-      int ix = node->self->hash & mask[newCapacity];
+      int ix = node->self->hash & internal::mask[newCapacity];
       node->self->hashList.insertBefore(&prospective[ix]);
     }
     capacity_ = newCapacity;

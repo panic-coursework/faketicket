@@ -1,4 +1,4 @@
-/// This file includes some common algorithms.
+// This file includes some common algorithms.
 #ifndef TICKET_LIB_ALGORITHM_H_
 #define TICKET_LIB_ALGORITHM_H_
 

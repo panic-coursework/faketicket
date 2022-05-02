@@ -52,6 +52,12 @@ class NotFound : public Exception {
   NotFound (const char *what) : Exception(what) {}
 };
 
+class ParseException : public Exception {
+ public:
+  ParseException () : Exception("parse exception") {}
+  ParseException (const char *what) : Exception(what) {}
+};
+
 } // namespace ticket
 
 #endif // TICKET_LIB_EXCEPTION_H_

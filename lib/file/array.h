@@ -10,7 +10,9 @@
 namespace ticket::file {
 
 /**
- * An on-stack array with utility functions and bound checks.
+ * @brief An on-stack array with utility functions and bound
+ * checks.
+ *
  * The value type needs to be trivial.
  */
 template <typename T, size_t maxLength, typename Cmp = Less<>>
@@ -38,8 +40,8 @@ struct Array {
     return false;
   }
   /**
-   * moves the elements after offset backwards, and inserts
-   * the element at the offset.
+   * @brief moves the elements after offset backwards, and
+   * inserts the element at the offset.
    */
   auto insert (const T &element, size_t offset) -> void {
     if (offset != length) boundsCheck_(offset);
@@ -62,8 +64,8 @@ struct Array {
     removeAt(indexOf(element));
   }
   /**
-   * removes the element at offset, and moves forward the
-   * elements after it.
+   * @brief removes the element at offset, and moves forward
+   * the elements after it.
    */
   auto removeAt (size_t offset) -> void {
     boundsCheck_(offset);

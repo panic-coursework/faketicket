@@ -8,7 +8,8 @@
 namespace ticket {
 
 /**
- * A resemblence of std::optional.
+ * @brief A resemblence of std::optional.
+ *
  * This class represents a state, or nothing at all. This is
  * sometimes better than using null pointers, as it avoids
  * the problem that a reference cannot be null. Internally

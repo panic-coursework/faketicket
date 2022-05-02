@@ -7,7 +7,8 @@
 namespace ticket {
 
 /**
- * A tagged union, aka sum type.
+ * @brief A tagged union, aka sum type.
+ *
  * This object holds exactly one of its member types, but
  * which type it holds is not statically known. It is
  * entirely on stack, no extra memory allocations are made.
