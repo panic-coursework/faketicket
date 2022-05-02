@@ -10,13 +10,18 @@ set(TICKET_INCLUDES
   ${ticket_SOURCE_DIR}/src
 )
 
+set(TICKET_LIB_SOURCES
+  lib/datetime.cpp
+)
+
 enable_testing()
 set(TICKET_TEST_SOURCES
-  lib/variant_test.cpp
-  lib/result_test.cpp
-  lib/map_test.cpp
-  lib/hashmap_test.cpp
+  lib/datetime_test.cpp
   lib/file/bptree_test.cpp
+  lib/hashmap_test.cpp
+  lib/map_test.cpp
+  lib/result_test.cpp
+  lib/variant_test.cpp
 )
 
 foreach(test ${TICKET_TEST_SOURCES})
@@ -24,7 +29,7 @@ foreach(test ${TICKET_TEST_SOURCES})
   string(SUBSTRING ${testmd5} 0 6 testmd5)
   get_filename_component(TName ${test} NAME_WE)
   set(testexe ${testmd5}-${TName})
-  add_executable(${testexe} ${test})
+  add_executable(${testexe} ${test} ${TICKET_LIB_SOURCES})
   target_include_directories(${testexe} PRIVATE ${TICKET_INCLUDES})
-  add_test(NAME ${testexe} COMMAND ./run-test ${testexe})
+  add_test(NAME ${testexe} COMMAND bin/run-test ${testexe})
 endforeach()
