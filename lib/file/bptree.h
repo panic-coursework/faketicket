@@ -1,4 +1,3 @@
-/// TODO: docs and tests
 #ifndef TICKET_LIB_FILE_BPTREE_H_
 #define TICKET_LIB_FILE_BPTREE_H_
 
@@ -35,32 +34,54 @@ class BpTree {
  private:
   struct Node;
  public:
+  /// constructs a B+ tree on the given file.
   BpTree (const char *filename) : file_(filename, [this] () { this->init_(); }) {}
+  /**
+   * inserts a key-value pair into the tree.
+   * duplicate keys is supported, though duplicate key-value
+   * pair leads to undefined behavior, and may lead to an
+   * invalid tree.
+   */
   auto insert (const KeyType &key, const ValueType &value) -> void {
     Node root = Node::root(*this);
     insert_({ .key = key, .value = value }, root);
     if (root.shouldSplit()) split_(root, root, 0);
     root.update();
   }
+  /**
+   * removes a key-value pair from the tree.
+   * you must ensure that the entry is indeed in the tree.
+   * removing an nonexistent entry may lead to an invalid
+   * tree.
+   */
   auto remove (const KeyType &key, const ValueType &value) -> void {
     Node root = Node::root(*this);
     remove_({ .key = key, .value = value }, root);
     if (root.shouldMerge()) merge_(root, root, 0);
     root.update();
   }
+  /// finds the first entry with the given key.
   auto findOne (const KeyType &key) -> Optional<ValueType> {
     return findOne_(key, Node::root(*this));
   }
+  /// finds all entries with the given key.
   auto findMany (const KeyType &key) -> Vector<ValueType> {
     return findMany_(key, Node::root(*this));
   }
+  /// finds all entries.
   auto findAll () -> Vector<ticket::Pair<KeyType, ValueType>> {
     return findAll_(Node::root(*this));
   }
+  /// checks if the given key-value pair exists in the tree.
   auto includes (const KeyType &key, const ValueType &value) -> bool {
     return includes_({ .key = key, .value = value }, Node::root(*this));
   }
 
+  /**
+   * clears the cache of the underlying file.
+   * you may need to call this method periodically to avoid
+   * using up too much memory.
+   */
   auto clearCache () -> void { file_.clearCache(); }
 
 #ifdef TICKET_DEBUG
