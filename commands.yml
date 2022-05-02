@@ -1,0 +1,80 @@
+add_user:
+  -c: string currentUser?
+  -u: string username
+  -p: string password
+  -n: string name
+  -m: string email
+  -g: int privilege?
+
+login:
+  -u: string username
+  -p: string password
+
+logout:
+  -u: string username
+
+query_profile:
+  -c: string currentUser
+  -u: string username
+
+modify_profile:
+  -c: string currentUser
+  -u: string username
+  -p: string password?
+  -n: string name?
+  -m: string email?
+  -g: int privilege?
+
+add_train:
+  -i: string id
+  -n: int stops
+  -m: int seats
+  -s: string stations[]
+  -p: int prices[]
+  -x: Instant departure
+  -t: Duration durations[]
+  -o: Duration stopoverTimes[]
+  -d: Date dates[]
+  -y: char type
+
+release_train:
+  -i: string id
+
+query_train:
+  -i: string id
+  -d: Date date
+
+query_ticket:
+  -s: string from
+  -t: string to
+  -d: Date date
+  -p: SortType sort = kTime
+
+query_transfer:
+  -s: string from
+  -t: string to
+  -d: Date date
+  -p: SortType sort = kTime
+
+buy_ticket:
+  -u: string currentUser
+  -i: string train
+  -d: Date date
+  -n: int seats
+  -f: string from
+  -t: string to
+  -q: bool queue = false
+
+query_order:
+  -u: string currentUser
+
+refund_ticket:
+  -u: string currentUser
+  -n: int index = 1
+
+rollback:
+  -t: int timestamp
+
+clean: {}
+
+exit: {}

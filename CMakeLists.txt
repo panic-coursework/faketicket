@@ -12,7 +12,15 @@ set(TICKET_INCLUDES
 
 set(TICKET_LIB_SOURCES
   lib/datetime.cpp
+  lib/utility.cpp
 )
+
+set(TICKET_SOURCES
+  ${TICKET_LIB_SOURCES}
+  src/parser.cpp
+)
+
+add_executable(code ${TICKET_SOURCES})
 
 enable_testing()
 set(TICKET_TEST_SOURCES
@@ -21,6 +29,7 @@ set(TICKET_TEST_SOURCES
   lib/hashmap_test.cpp
   lib/map_test.cpp
   lib/result_test.cpp
+  lib/utility_test.cpp
   lib/variant_test.cpp
 )
 

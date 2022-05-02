@@ -18,8 +18,10 @@
 namespace ticket::file {
 
 /**
- * an implementation of the B+ tree. It stores key and value
- * together in order to support duplicate keys.
+ * @brief an implementation of the B+ tree.
+ *
+ * it stores key and value together in order to support
+ * duplicate keys.
  *
  * constraints: KeyType and ValueType need to be comparable.
  */
@@ -37,7 +39,8 @@ class BpTree {
   /// constructs a B+ tree on the given file.
   BpTree (const char *filename) : file_(filename, [this] () { this->init_(); }) {}
   /**
-   * inserts a key-value pair into the tree.
+   * @brief inserts a key-value pair into the tree.
+   *
    * duplicate keys is supported, though duplicate key-value
    * pair leads to undefined behavior, and may lead to an
    * invalid tree.
@@ -49,7 +52,8 @@ class BpTree {
     root.update();
   }
   /**
-   * removes a key-value pair from the tree.
+   * @brief removes a key-value pair from the tree.
+   *
    * you must ensure that the entry is indeed in the tree.
    * removing an nonexistent entry may lead to an invalid
    * tree.
@@ -78,7 +82,8 @@ class BpTree {
   }
 
   /**
-   * clears the cache of the underlying file.
+   * @brief clears the cache of the underlying file.
+   *
    * you may need to call this method periodically to avoid
    * using up too much memory.
    */

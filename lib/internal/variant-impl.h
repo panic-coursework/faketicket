@@ -1,4 +1,4 @@
-/// This file contains some undocumented magic on variant.
+// This file contains some undocumented magic on variant.
 #ifndef TICKET_LIB_VARIANT_IMPL_H_
 #define TICKET_LIB_VARIANT_IMPL_H_
 

@@ -1,0 +1,13 @@
+{
+  "name": "faketicket",
+  "version": "0.0.0-dev",
+  "description": "SJTU CS1951 lab assignment",
+  "main": "index.js",
+  "repository": "git+https://github.com/panic-coursework/faketicket.git",
+  "author": "Alan Liang <alan@symb.olic.link>",
+  "license": "GPL-3.0",
+  "private": true,
+  "dependencies": {
+    "yaml": "^2.0.1"
+  }
+}

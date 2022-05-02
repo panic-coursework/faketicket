@@ -10,7 +10,8 @@
 namespace ticket {
 
 /**
- * A data container like std::vector
+ * @brief A data container like std::vector
+ *
  * store data in a successive memory and support random access.
  */
 template<typename T>
@@ -184,6 +185,7 @@ class Vector {
   auto begin () -> iterator {
     return iterator(this, storage_);
   }
+  auto begin () const -> const_iterator { return cbegin(); }
   auto cbegin () const -> const_iterator {
     return const_iterator(this, storage_);
   }
@@ -193,6 +195,7 @@ class Vector {
   auto end () -> iterator {
     return iterator(this, storage_ + size_);
   }
+  auto end () const -> const_iterator { return cend(); }
   auto cend () const -> const_iterator {
     return const_iterator(this, storage_ + size_);
   }
@@ -275,6 +278,10 @@ class Vector {
     checkNonEmpty_();
     (storage_ + size_ - 1)->~T();
     --size_;
+  }
+
+  auto reserve (size_t capacity) -> void {
+    if (capacity_ < capacity) grow_(capacity);
   }
 
  private:

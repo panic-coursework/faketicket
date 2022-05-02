@@ -7,17 +7,19 @@
 namespace ticket {
 
 /**
- * Result<Res, Err> = Res | Err
+ * @brief Result<Res, Err> = Res | Err
  *
  * This class provides a wrapper around variant to make
  * error handling a little easier. Recommended usage:
  *
+ * ```cpp
  * auto foo = doSomethingThatMightFail(args);
  * if (auto err = foo.error()) {
  *   // handles error, or rethrow:
  *   return *err;
  * }
  * std::cout << foo.result() << std::endl;
+ * ```
  *
  * Therefore, result() returns a reference, while error()
  * returns a pointer. This design is subject to change.
