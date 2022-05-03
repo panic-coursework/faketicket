@@ -38,6 +38,9 @@ struct Unit {
   constexpr Unit () = default;
   template <typename T>
   constexpr Unit (const T & /* unused */) {}
+  auto operator< (const Unit & /* unused */) -> bool {
+    return false;
+  }
 };
 inline constexpr Unit unit;
 
@@ -52,7 +55,7 @@ auto move (T &val) -> T && {
 }
 
 /// A pair of objects.
-template <class T1, class T2>
+template <typename T1, typename T2>
 class Pair {
  public:
   T1 first;

@@ -2,7 +2,6 @@
 #define TICKET_LIB_FILE_SET_H_
 
 #include <cstring>
-#include <functional>
 
 #include "algorithm.h"
 #include "exception.h"
@@ -117,7 +116,8 @@ struct Set {
   }
 
   /// calls the callback for each element in the array.
-  auto forEach (const std::function<void (const T &element)> &callback) -> void {
+  template <typename Functor>
+  auto forEach (const Functor &callback) -> void {
     for (int i = 0; i < length; ++i) callback(content[i]);
   }
 };

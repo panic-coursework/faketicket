@@ -2,7 +2,6 @@
 #define TICKET_LIB_FILE_ARRAY_H_
 
 #include <cstring>
-#include <functional>
 
 #include "exception.h"
 #include "utility.h"
@@ -130,7 +129,8 @@ struct Array {
   auto unshift (const T &object) -> void { insert(object, 0); }
 
   /// calls the callback for each element in the array.
-  auto forEach (const std::function<void (const T &)> &callback) -> T {
+  template <typename Functor>
+  auto forEach (const Functor &callback) -> T {
     for (size_t i = 0; i < length; ++i) callback(content[i]);
   }
 };

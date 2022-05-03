@@ -30,6 +30,7 @@ template <
   typename ValueType,
   typename CmpKey = Less<>,
   typename CmpValue = Less<>,
+  typename Meta = Unit,
   size_t szChunk = kDefaultSzChunk
 >
 class BpTree {
@@ -81,6 +82,15 @@ class BpTree {
     return includes_({ .key = key, .value = value }, Node::root(*this));
   }
 
+  /// gets user-provided metadata.
+  auto getMeta () -> Meta {
+    return file_.getMeta();
+  }
+  /// sets user-provided metadata.
+  auto setMeta (const Meta &meta) -> void {
+    return file_.setMeta(meta);
+  }
+
   /**
    * @brief clears the cache of the underlying file.
    *
@@ -94,7 +104,7 @@ class BpTree {
 #endif
 
  private:
-  File<szChunk> file_;
+  File<Meta, szChunk> file_;
   CmpKey cmpKey_;
   CmpValue cmpValue_;
 
@@ -149,7 +159,7 @@ class BpTree {
     RecordPayload record;
     NodePayload () {} // NOLINT
   };
-  struct Node : public ManagedObject<Node, szChunk> {
+  struct Node : public ManagedObject<Node, Meta, szChunk> {
     NodeType type;
     NodePayload payload;
     static_assert(sizeof(NodeType) + sizeof(NodePayload) <= szChunk);
@@ -162,7 +172,7 @@ class BpTree {
     auto next () -> NodeId & { TICKET_ASSERT(type == kRecord); return payload.record.next; }
     auto entries () -> Set<Pair, 2 * RecordPayload::l> & { TICKET_ASSERT(type == kRecord); return payload.record.entries; }
 
-    Node (BpTree &tree, NodeType type) : ManagedObject<Node, szChunk>(tree.file_), type(type) {
+    Node (BpTree &tree, NodeType type) : ManagedObject<Node, Meta, szChunk>(tree.file_), type(type) {
       if (type == kRecord) {
         new(&payload.record) RecordPayload;
       } else {

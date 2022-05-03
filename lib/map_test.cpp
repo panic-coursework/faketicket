@@ -7,7 +7,7 @@ class Integer {
 public:
 	static int counter;
 	int val;
-	
+
 	Integer(int val) : val(val) {
 		counter++;
 	}
@@ -40,7 +40,7 @@ public:
 
 void tester(void) {
 	//	test: constructor
-	ticket::map<Integer, std::string, Compare> map;
+	ticket::Map<Integer, std::string, Compare> map;
 	//	test: empty(), size()
 	assert(map.empty() && map.size() == 0);
 	//	test: operator[], insert()
@@ -74,7 +74,7 @@ void tester(void) {
 	}
 	//	test: constructor, operator=, clear();
 	for (int i = 0; i < (int)map.size(); ++i) {
-		ticket::map<Integer, std::string, Compare> copy(map);
+		ticket::Map<Integer, std::string, Compare> copy(map);
 		map.clear();
 		std::cout << map.size() << " " << copy.size() << " ";
 		map = copy;
@@ -89,7 +89,7 @@ void tester(void) {
 	}
 	std::cout << std::endl;
 	//	test: const_iterator, cbegin(), cend(), operator++, at()
-	ticket::map<Integer, std::string, Compare>::const_iterator const_iterator;
+	ticket::Map<Integer, std::string, Compare>::const_iterator const_iterator;
 	const_iterator = map.cbegin();
 	while (const_iterator != map.cend()) {
 		const Integer integer(const_iterator->first);
@@ -98,10 +98,10 @@ void tester(void) {
 	}
 	std::cout << std::endl;
 	//	test: iterator, operator--, operator->
-	ticket::map<Integer, std::string, Compare>::iterator iterator;
+	ticket::Map<Integer, std::string, Compare>::iterator iterator;
 	iterator = map.end();
 	while (true) {
-		ticket::map<Integer, std::string, Compare>::iterator peek = iterator;
+		ticket::Map<Integer, std::string, Compare>::iterator peek = iterator;
 		if (peek == map.begin()) {
 			std::cout << std::endl;
 			break;

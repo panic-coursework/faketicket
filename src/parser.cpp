@@ -5,7 +5,7 @@
 
 namespace ticket::command {
 
-auto parseCommand (std::string &str)
+auto parse (std::string &str)
   -> Result<Command, ParseException> {
   auto argv = split(str, ' ');
   auto &argv0 = argv[0];

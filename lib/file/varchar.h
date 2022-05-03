@@ -13,6 +13,10 @@ namespace ticket::file {
  * and type conversions.
  *
  * the trailing zero is not counted in maxLength.
+ *
+ * its default ordering is hash order. this is for a
+ * maximum performance. you need to write a comparator
+ * if you want dictionary order.
  */
 template <int maxLength>
 struct Varchar {
@@ -50,26 +54,33 @@ struct Varchar {
       throw Overflow("Varchar length overflow");
     }
     strcpy(content, that.content);
+    hash_ = that.hash_;
     return *this;
   }
 
   template <int A>
   auto operator< (const Varchar<A> &that) const -> bool {
-    return strcmp(content, that.content) < 0;
+    return hash() < that.hash();
   }
   template <int A>
   auto operator== (const Varchar<A> &that) const -> bool {
-    return strcmp(content, that.content) == 0;
+    return hash() == that.hash();
   }
   template <int A>
   auto operator!= (const Varchar<A> &that) const -> bool {
-    return !(*this == that);
+    return hash() != that.hash();
+  }
+
+  auto hash () const -> size_t {
+    if (hash_ != 0) return hash_;
+    return hash_ = std::hash<std::string_view>()(content);
   }
 
  private:
   template <int A>
   friend class Varchar;
   char content[maxLength + 1];
+  mutable size_t hash_ = 0;
 };
 
 } // namespace ticket::file

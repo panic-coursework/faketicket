@@ -2,8 +2,7 @@
 #ifndef TICKET_LIB_ALGORITHM_H_
 #define TICKET_LIB_ALGORITHM_H_
 
-#include <type_traits>
-#include <iterator>
+#include <iostream>
 
 #include "utility.h"
 
