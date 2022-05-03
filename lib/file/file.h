@@ -2,14 +2,8 @@
 #ifndef TICKET_LIB_FILE_FILE_H_
 #define TICKET_LIB_FILE_FILE_H_
 
-#include <stddef.h>
-#include <errno.h>
-#include <sys/stat.h>
-
 #include <cstring>
 #include <fstream>
-#include <functional>
-#include <limits>
 
 #include "hashmap.h"
 #include "utility.h"
@@ -27,7 +21,7 @@ constexpr size_t kDefaultSzChunk = 4096;
  * It is of chunk size of szChunk and has cache powered by
  * HashMap.
  */
-template <size_t szChunk = kDefaultSzChunk, typename Meta = Unit>
+template <typename Meta = Unit, size_t szChunk = kDefaultSzChunk>
 class File {
  private:
   class Metadata;
@@ -41,25 +35,12 @@ class File {
    * @param initializer callback called on the creation of
    *   the file, when the file is empty.
    */
-  File (const char *filename, const std::function<void (void)> &initializer) {
-    struct stat _st;
-    bool shouldCreate = stat(filename, &_st) != 0;
-    if (shouldCreate) {
-      if (errno != ENOENT) {
-        throw IoException("File::init_: Unable to stat");
-      }
-      file_.open(filename, std::ios_base::out);
-      file_.close();
-    }
-    file_.open(filename);
-    if (!file_.is_open() || !file_.good()) {
-      throw IoException("Unable to open file");
-    }
-    if (shouldCreate) {
-      Metadata meta(0, false);
-      set(&meta, -1, sizeof(meta));
-      initializer();
-    }
+  template <typename Functor>
+  File (const char *filename, const Functor &initializer) {
+    init_(filename, initializer);
+  }
+  File (const char *filename) {
+    init_(filename, [] {});
   }
   ~File () { clearCache(); }
 
@@ -135,6 +116,39 @@ class File {
     Metadata (size_t next, bool hasNext) : next(next), hasNext(hasNext) {}
   };
   static_assert(szChunk > sizeof(Metadata));
+
+  template <typename Functor>
+  auto init_ (const char *filename, const Functor &initializer) -> void {
+    bool shouldCreate = false;
+    auto testFile = fopen(filename, "r");
+    if (testFile == nullptr) {
+      if (errno != ENOENT) {
+        throw IoException("Unable to open file");
+      }
+      shouldCreate = true;
+    } else if (fclose(testFile)) {
+      throw IoException("Unable to close file");
+    }
+    if (shouldCreate) {
+      auto file = fopen(filename, "w+");
+      if (file == nullptr) {
+        throw IoException("Unable to create file");
+      }
+      if (fclose(file)) {
+        throw IoException("Unable to close file when creating file");
+      }
+    }
+    file_.open(filename);
+    if (!file_.is_open() || !file_.good()) {
+      throw IoException("Unable to open file");
+    }
+    if (shouldCreate) {
+      Metadata meta(0, false);
+      set(&meta, -1, sizeof(meta));
+      initializer();
+    }
+  }
+
   auto meta_ () -> Metadata {
     Metadata retval;
     get(&retval, -1, sizeof(retval));
@@ -159,10 +173,12 @@ class File {
  *
  * it handles get, update, and push for the object.
  */
-template <typename T, size_t szChunk = kDefaultSzChunk>
+template <typename T, typename Meta = Unit, size_t szChunk = kDefaultSzChunk>
 class ManagedObject {
+ private:
+  using File_ = File<Meta, szChunk>;
  public:
-  ManagedObject (File<szChunk> &file) : file_(&file) {}
+  ManagedObject (File_ &file) : file_(&file) {}
   virtual ~ManagedObject () = default;
 
   /**
@@ -175,7 +191,7 @@ class ManagedObject {
   auto id () -> size_t { return id_; }
 
   /// gets the object at id in file.
-  static auto get (File<szChunk> &file, size_t id) -> T {
+  static auto get (File_ &file, size_t id) -> T {
     char buf[sizeof(T)];
     file.get(buf, id, sizeof(T));
     ManagedObject &result = *reinterpret_cast<ManagedObject *>(buf);
@@ -206,9 +222,9 @@ class ManagedObject {
     id_ = -1;
   }
  private:
-  File<szChunk> *file_;
+  File_ *file_;
   size_t id_ = -1;
-  ManagedObject (File<szChunk> &file, size_t id) : file_(&file), id_(id) {}
+  ManagedObject (File_ &file, size_t id) : file_(&file), id_(id) {}
 };
 
 } // namespace ticket::file

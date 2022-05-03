@@ -17,10 +17,17 @@ set(TICKET_LIB_SOURCES
 
 set(TICKET_SOURCES
   ${TICKET_LIB_SOURCES}
+  src/main.cpp
+  src/misc.cpp
+  src/order.cpp
   src/parser.cpp
+  src/rollback.cpp
+  src/train.cpp
+  src/user.cpp
 )
 
 add_executable(code ${TICKET_SOURCES})
+target_include_directories(code PRIVATE ${TICKET_INCLUDES})
 
 enable_testing()
 set(TICKET_TEST_SOURCES

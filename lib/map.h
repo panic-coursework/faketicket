@@ -17,7 +17,7 @@ namespace ticket {
 
 /// A sorted key-value map backed by a red-black tree.
 template <typename KeyType, typename ValueType, typename Compare = internal::LessOp>
-class map {
+class Map {
  public:
   using value_type = Pair<const KeyType, ValueType>;
  private:
@@ -26,7 +26,7 @@ class map {
   using iterator = typename TreeType::iterator;
   using const_iterator = typename TreeType::const_iterator;
 
-  map () = default;
+  Map () = default;
   /**
    * access specified element with bounds checking
    * Returns a reference to the mapped value of the element with key equivalent to key.

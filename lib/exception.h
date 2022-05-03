@@ -6,16 +6,18 @@
 #ifndef TICKET_LIB_EXCEPTION_H_
 #define TICKET_LIB_EXCEPTION_H_
 
+#include <iostream>
+
 namespace ticket {
 
 /// The base exception class.
-class Exception {
+class Exception : public std::exception {
  public:
   Exception () = default;
   Exception (const char *what) : what_(what) {}
   virtual ~Exception () = default;
   /// returns a human-readable description of the exception.
-  virtual auto what () -> const char * {
+  virtual auto what () const noexcept -> const char * {
     return what_;
   }
  private:

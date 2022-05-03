@@ -2,9 +2,7 @@
 #ifndef TICKET_LIB_VARIANT_IMPL_H_
 #define TICKET_LIB_VARIANT_IMPL_H_
 
-#include <functional>
 #include <iostream>
-#include <type_traits>
 
 #include "utility.h"
 

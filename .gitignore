@@ -12,10 +12,19 @@
 
 build
 *_test
+code
 
 docs/html
 docs/xml
 docs/latex
+
+*.ix
+orders
+pending-orders
+rollback-log
+trains
+ride-seats
+users
 
 node_modules
 
