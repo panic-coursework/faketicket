@@ -18,7 +18,7 @@ using Id = file::Varchar<30>;
 
 struct RideSeats;
 
-struct Train : public file::ManagedObject<Train> {
+struct TrainBase {
   using Id = file::Varchar<20>;
   using Type = char;
   struct Stop {
@@ -70,12 +70,14 @@ struct Train : public file::ManagedObject<Train> {
    * @param ixDeparture the index of the departing stop.
    */
   auto runsOnDate (Date date, int ixDeparture) -> bool;
+
+  static constexpr const char *filename = "trains";
+};
+struct Train : public file::Managed<TrainBase> {
+  static file::Index<Train::Id, Train> ixId;
+  static file::BpTree<size_t, int> ixStop;
 };
 
-extern file::File<> trains;
-extern file::Index<Train::Id, Train, decltype(trains)>
-  ixTrainsId;
-extern file::BpTree<size_t, int> ixTrainsStop;
 
 struct Ride {
   /// the numerical id of the train.
@@ -85,7 +87,7 @@ struct Ride {
   auto operator< (const Ride &rhs) const -> bool;
 };
 
-struct RideSeats : public file::ManagedObject<RideSeats> {
+struct RideSeatsBase {
   Ride ride;
   file::Array<int, 99> seatsRemaining;
 
@@ -95,11 +97,12 @@ struct RideSeats : public file::ManagedObject<RideSeats> {
    * @param ixTo index of the arriving stop
    */
   auto ticketsAvailable (int ixFrom, int ixTo) -> int;
-};
 
-extern file::File<> rideSeats;
-extern file::Index<Ride, RideSeats, decltype(rideSeats)>
-  ixRideSeatsRide;
+  static constexpr const char *filename = "ride-seats";
+};
+struct RideSeats : public file::Managed<RideSeatsBase> {
+  static file::Index<Ride, RideSeats> ixRide;
+};
 
 } // namespace ticket
 

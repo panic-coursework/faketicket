@@ -168,18 +168,18 @@ class File {
 };
 
 /**
- * @brief an opinionated utility base class for the objects
- * to be stored.
+ * @brief an opinionated utility class wrapper for the
+ * objects to be stored.
  *
  * it handles get, update, and push for the object.
+ *
+ * the base class needs to have a static char *filename.
  */
-template <typename T, typename Meta = Unit, size_t szChunk = kDefaultSzChunk>
-class ManagedObject {
- private:
-  using File_ = File<Meta, szChunk>;
+template <typename T, typename Meta = Unit>
+class Managed : public T {
  public:
-  ManagedObject (File_ &file) : file_(&file) {}
-  virtual ~ManagedObject () = default;
+  /// The underlying file storage.
+  static File<Meta, sizeof(T)> file;
 
   /**
    * @brief the unique immutable numeral identifier of the
@@ -191,13 +191,13 @@ class ManagedObject {
   auto id () -> size_t { return id_; }
 
   /// gets the object at id in file.
-  static auto get (File_ &file, size_t id) -> T {
-    char buf[sizeof(T)];
-    file.get(buf, id, sizeof(T));
-    ManagedObject &result = *reinterpret_cast<ManagedObject *>(buf);
-    result.file_ = &file;
-    result.id_ = id;
-    return *reinterpret_cast<T *>(buf);
+  static auto get (size_t id) -> Managed {
+    char buf[sizeof(Managed)];
+    auto managed = reinterpret_cast<Managed *>(buf);
+    auto unmanaged = static_cast<T *>(managed);
+    file.get(unmanaged, id, sizeof(T));
+    managed->id_ = id;
+    return *managed;
   }
 
   /**
@@ -207,25 +207,26 @@ class ManagedObject {
    * update the object after a modification, use update().
    */
   auto save () -> void {
-    if (id_ != -1) throw Exception("Already saved");
-    id_ = file_->push(reinterpret_cast<char *>(this), sizeof(T));
+    TICKET_ASSERT(id_ == -1);
+    id_ = file.push(static_cast<T *>(this), sizeof(T));
   }
   /// updates a modified object.
   auto update () -> void {
-    if (id_ == -1) throw Exception("Not saved");
-    file_->set(reinterpret_cast<char *>(this), id_, sizeof(T));
+    TICKET_ASSERT(id_ != -1);
+    file.set(static_cast<T *>(this), id_, sizeof(T));
   }
   /// removes the object from the file.
   auto destroy () -> void {
-    if (id_ == -1) throw Exception("Not saved");
-    file_->remove(id_);
+    TICKET_ASSERT(id_ != -1);
+    file.remove(id_);
     id_ = -1;
   }
  private:
-  File_ *file_;
   size_t id_ = -1;
-  ManagedObject (File_ &file, size_t id) : file_(&file), id_(id) {}
 };
+
+template <typename T, typename Meta>
+File<Meta, sizeof(T)> Managed<T, Meta>::file { T::filename };
 
 } // namespace ticket::file
 

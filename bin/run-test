@@ -13,7 +13,7 @@ if [ "$1" = "c23b0a-hashmap_test" ]; then
 fi
 if [ "$1" = "b5824a-bptree_test" ]; then
   rm -f file.o
-  "$EXE" < lib/file/bptree_test.in | diff -w - lib/file/bptree_test.ans || exit 1
+  valgrind $VG_FLAGS "$EXE" < lib/file/bptree_test.in | diff -w - lib/file/bptree_test.ans || exit 1
   exit 0
 fi
 

@@ -8,14 +8,13 @@
 
 namespace ticket {
 
-file::File<> users {"users"};
-file::Index<User::Id, User, decltype(users)> ixUsersUsername
-  {&User::username, "users.username.ix", users};
+file::Index<User::Id, User> User::ixUsername
+  {&User::username, "users.username.ix"};
 
 /// a set of users that are logged in.
 HashMap<std::string, Unit> usersLoggedIn;
 
-auto User::hasUser (const char *username) -> bool {
+auto UserBase::hasUser (const char *username) -> bool {
   // TODO
 }
 
