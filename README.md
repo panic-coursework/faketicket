@@ -49,4 +49,4 @@ same contents. You can generate these docs by running
 
 ## License
 
-SPDX-License-Identifier: GPL-3.0-or-above
+SPDX-License-Identifier: GPL-3.0-or-later

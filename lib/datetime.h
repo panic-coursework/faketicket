@@ -46,6 +46,7 @@ class Date {
   /// checks if this Date is in the given range (inclusive).
   auto inRange (Date begin, Date end) const -> bool;
  private:
+  explicit Date (int days) : days_(days) {}
   int days_ = 0;
 };
 
@@ -62,16 +63,9 @@ class Date {
 class Duration {
  public:
   Duration () = default;
-  Duration (int hour, int minute);
-  explicit Duration (int minutes);
-  /// constructs a Duration from an HH:MM format string.
-  explicit Duration (const char *str);
-  /// gets the hour part of the duration, may be negative.
-  auto hours () const -> int;
-  /// gets the minute part of the duration, may be negative.
-  auto minutes () const -> int;
+  explicit Duration (int minutes) : minutes_(minutes) {}
   /// gets how many minutes are there in this Duration.
-  auto totalMinutes () const -> int;
+  auto minutes () const -> int;
   auto operator+ (Duration dt) const -> Duration;
   auto operator- (Duration dt) const -> Duration;
   /// negates the Duration.
@@ -105,6 +99,7 @@ class Instant {
   auto operator- (Instant rhs) const -> Duration;
   auto operator< (const Instant &rhs) const -> bool;
  private:
+  explicit Instant (int minutes) : minutes_(minutes) {}
   int minutes_ = 0;
 };
 
