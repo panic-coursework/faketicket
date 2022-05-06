@@ -60,6 +60,10 @@ struct AddTrain {
   char type;
 };
 
+struct DeleteTrain {
+  std::string id;
+};
+
 struct ReleaseTrain {
   std::string id;
 };
@@ -122,6 +126,7 @@ using Command = Variant<
   QueryProfile,
   ModifyProfile,
   AddTrain,
+  DeleteTrain,
   ReleaseTrain,
   QueryTrain,
   QueryTicket,
@@ -158,6 +163,7 @@ auto dispatch (const Logout &cmd) -> void;
 auto dispatch (const QueryProfile &cmd) -> void;
 auto dispatch (const ModifyProfile &cmd) -> void;
 auto dispatch (const AddTrain &cmd) -> void;
+auto dispatch (const DeleteTrain &cmd) -> void;
 auto dispatch (const ReleaseTrain &cmd) -> void;
 auto dispatch (const QueryTrain &cmd) -> void;
 auto dispatch (const QueryTicket &cmd) -> void;
