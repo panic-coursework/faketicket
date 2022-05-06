@@ -26,6 +26,10 @@ struct AddTrain {
   int id;
 };
 
+struct DeleteTrain {
+  int id;
+};
+
 struct ReleaseTrain {
   int id;
 };
@@ -45,6 +49,7 @@ struct LogEntry : public file::ManagedObject<LogEntry> {
     AddUser,
     ModifyProfile,
     AddTrain,
+    DeleteTrain,
     ReleaseTrain,
     BuyTicket,
     RefundTicket
@@ -62,6 +67,7 @@ extern file::File<> logEntries;
 auto dispatch (const AddUser &log) -> void;
 auto dispatch (const ModifyProfile &log) -> void;
 auto dispatch (const AddTrain &log) -> void;
+auto dispatch (const DeleteTrain &log) -> void;
 auto dispatch (const ReleaseTrain &log) -> void;
 auto dispatch (const BuyTicket &log) -> void;
 auto dispatch (const RefundTicket &log) -> void;

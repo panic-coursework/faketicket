@@ -138,6 +138,17 @@ auto parse (std::string &str)
       }
     }
     return Command(res);
+  } else if (argv0 == "delete_train") {
+    DeleteTrain res;
+    for (int i = 1; i < argv.size(); ++i) {
+      auto &arg = argv[i];
+      if (arg == "-i") {
+        res.id = argv[++i].data();
+      } else {
+        return ParseException();
+      }
+    }
+    return Command(res);
   } else if (argv0 == "release_train") {
     ReleaseTrain res;
     for (int i = 1; i < argv.size(); ++i) {

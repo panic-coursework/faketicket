@@ -37,6 +37,9 @@ add_train:
   -d: Date dates[]
   -y: char type
 
+delete_train:
+  -i: string id
+
 release_train:
   -i: string id
 

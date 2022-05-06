@@ -21,6 +21,9 @@ file::Index<Ride, RideSeats, decltype(rideSeats)>
 auto command::dispatch (const command::AddTrain &cmd) -> void {
   // TODO
 }
+auto command::dispatch (const command::DeleteTrain &cmd) -> void {
+  // TODO
+}
 auto command::dispatch (const command::ReleaseTrain &cmd) -> void {
   // TODO
 }
@@ -35,6 +38,9 @@ auto command::dispatch (const command::QueryTransfer &cmd) -> void {
 }
 
 auto rollback::dispatch (const rollback::AddTrain &log) -> void {
+  // TODO
+}
+auto rollback::dispatch (const rollback::DeleteTrain &log) -> void {
   // TODO
 }
 auto rollback::dispatch (const rollback::ReleaseTrain &log) -> void {

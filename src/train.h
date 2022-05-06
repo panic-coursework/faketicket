@@ -36,7 +36,8 @@ struct Train : public file::ManagedObject<Train> {
   int seats;
   Date begin, end;
   Type type;
-  bool released;
+  bool released = false;
+  bool deleted = false;
 
   /// finds the index of the station of the given name.
   auto indexOfStop (const std::string &name) -> Result<int, NotFound>;
