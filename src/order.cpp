@@ -5,17 +5,13 @@
 
 namespace ticket {
 
-file::File<> orders {"orders"};
-file::Index<User::Id, Order, decltype(orders)>
-  ixOrdersUserId {&Order::user, "orders.user.ix", orders};
+file::Index<User::Id, Order> Order::ixUserId
+  {&Order::user, "orders.user.ix"};
 
-file::File<> pendingOrders {"pending-orders"};
-file::Index<Ride, PendingOrder, decltype(pendingOrders)>
-  ixPendingOrdersRide {
-    &PendingOrder::ride,
-    "pending-orders.ride.ix",
-    pendingOrders
-  };
+file::Index<Ride, PendingOrder> PendingOrder::ixRide {
+  &PendingOrder::ride,
+  "pending-orders.ride.ix"
+};
 
 auto command::dispatch (const command::BuyTicket &cmd) -> void {
   // TODO

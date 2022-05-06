@@ -6,6 +6,7 @@
 #include "algorithm.h"
 #include "file/array.h"
 #include "file/file.h"
+#include "file/internal/file.h"
 #include "file/set.h"
 #include "optional.h"
 #include "utility.h"
@@ -159,9 +160,11 @@ class BpTree {
     RecordPayload record;
     NodePayload () {} // NOLINT
   };
-  struct Node : public ManagedObject<Node, Meta, szChunk> {
+  struct Node : public internal::UnmanagedObject<Node, Meta, szChunk> {
+    char _start[0];
     NodeType type;
     NodePayload payload;
+    char _end[0];
     static_assert(sizeof(NodeType) + sizeof(NodePayload) <= szChunk);
 
     // dynamically type-safe accessors
@@ -172,7 +175,7 @@ class BpTree {
     auto next () -> NodeId & { TICKET_ASSERT(type == kRecord); return payload.record.next; }
     auto entries () -> Set<Pair, 2 * RecordPayload::l> & { TICKET_ASSERT(type == kRecord); return payload.record.entries; }
 
-    Node (BpTree &tree, NodeType type) : ManagedObject<Node, Meta, szChunk>(tree.file_), type(type) {
+    Node (BpTree &tree, NodeType type) : internal::UnmanagedObject<Node, Meta, szChunk>(tree.file_), type(type) {
       if (type == kRecord) {
         new(&payload.record) RecordPayload;
       } else {
@@ -512,7 +515,7 @@ class BpTree {
   }
 #ifdef TICKET_DEBUG
   auto print_ (Node node) -> void {
-    if (node.type == RECORD) {
+    if (node.type == kRecord) {
       std::cerr << "[Record " << node.id() << " (" << node.length() << "/" << 2 * RecordPayload::l - 1 << ")]";
       for (int i = 0; i < node.length(); ++i) std::cerr << " (" << std::string(node.entries()[i].key) << ", " << node.entries()[i].value << ")";
       std::cerr << std::endl;

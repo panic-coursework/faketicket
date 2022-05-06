@@ -8,7 +8,7 @@
 
 namespace ticket {
 
-struct Order : public file::ManagedObject<Order> {
+struct OrderBase {
   using Id = int;
   enum Status { kSuccess, kPending, kRefunded };
 
@@ -20,13 +20,15 @@ struct Order : public file::ManagedObject<Order> {
 
   /// gets the corresponding train object.
   auto getTrain () -> Train;
+
+  static constexpr const char *filename = "orders";
+};
+struct Order : public file::Managed<OrderBase> {
+  static file::Index<User::Id, Order> ixUserId;
 };
 
-extern file::File<> orders;
-extern file::Index<User::Id, Order, decltype(orders)>
-  ixOrdersUserId;
 
-struct PendingOrder : public file::ManagedObject<PendingOrder> {
+struct PendingOrderBase {
   Ride ride;
   int ixFrom, ixTo;
   int seats;
@@ -36,11 +38,12 @@ struct PendingOrder : public file::ManagedObject<PendingOrder> {
   auto satisfiable () -> bool;
   /// gets the corresponding order object.
   auto getOrder () -> Order;
-};
 
-extern file::File<> pendingOrders;
-extern file::Index<Ride, PendingOrder, decltype(pendingOrders)>
-  ixPendingOrdersRide;
+  static constexpr const char *filename = "pending-orders";
+};
+struct PendingOrder : public file::Managed<PendingOrderBase> {
+  static file::Index<Ride, PendingOrder> ixRide;
+};
 
 } // namespace ticket
 

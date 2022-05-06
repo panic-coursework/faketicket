@@ -5,18 +5,12 @@
 
 namespace ticket {
 
-file::File<> trains {"trains"};
-file::Index<Train::Id, Train, decltype(trains)>
-  ixTrainsId {&Train::trainId, "trains.train-id.ix", trains};
-file::BpTree<size_t, int> ixTrainsStop {"trains.stop.ix"};
+file::Index<Train::Id, Train> Train::ixId
+  {&Train::trainId, "trains.train-id.ix"};
+file::BpTree<size_t, int> Train::ixStop {"trains.stop.ix"};
 
-file::File<> rideSeats {"ride-seats"};
-file::Index<Ride, RideSeats, decltype(rideSeats)>
-  ixRideSeatsRide {
-    &RideSeats::ride,
-    "ride-seats.ride.ix",
-    rideSeats
-  };
+file::Index<Ride, RideSeats> RideSeats::ixRide
+  {&RideSeats::ride, "ride-seats.ride.ix"};
 
 auto command::dispatch (const command::AddTrain &cmd) -> void {
   // TODO

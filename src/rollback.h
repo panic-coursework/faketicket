@@ -43,7 +43,7 @@ struct RefundTicket {
   Order::Status status;
 };
 
-struct LogEntry : public file::ManagedObject<LogEntry> {
+struct LogEntryBase {
   int timestamp;
   Variant<
     AddUser,
@@ -54,9 +54,10 @@ struct LogEntry : public file::ManagedObject<LogEntry> {
     BuyTicket,
     RefundTicket
   > content;
-};
 
-extern file::File<> logEntries;
+  static constexpr const char *filename = "rollback-log";
+};
+using LogEntry = file::Managed<LogEntryBase>;
 
 /**
  * @brief Visitor for the log entries.

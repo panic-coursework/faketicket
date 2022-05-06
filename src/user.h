@@ -7,7 +7,7 @@
 
 namespace ticket {
 
-struct User : public file::ManagedObject<User> {
+struct UserBase {
   using Id = file::Varchar<20>;
   using Password = file::Varchar<30>;
   using Name = file::Varchar<15>;
@@ -22,11 +22,12 @@ struct User : public file::ManagedObject<User> {
 
   /// checks if there is a user with the given username.
   static auto hasUser (const char *username) -> bool;
-};
 
-extern file::File<> users;
-extern file::Index<User::Id, User, decltype(users)>
-  ixUsersUsername;
+  static constexpr const char *filename = "users";
+};
+struct User : public file::Managed<UserBase> {
+  static file::Index<User::Id, User> ixUsername;
+};
 
 } // namespace ticket
 

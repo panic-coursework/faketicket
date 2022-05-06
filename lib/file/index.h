@@ -17,7 +17,7 @@ namespace ticket::file {
  *
  * Model needs to be a subclass of ManagedObject.
  */
-template <typename Key, typename Model, typename DataFile>
+template <typename Key, typename Model>
 class Index {
  public:
   /**
@@ -26,8 +26,8 @@ class Index {
    * @param filename file to store the key.
    * @param datafile the main file where data is stored.
    */
-  Index (Key Model::*ptr, const char *filename, DataFile &datafile)
-    : ptr_(ptr), tree_(filename), file_(datafile) {}
+  Index (Key Model::*ptr, const char *filename)
+    : ptr_(ptr), tree_(filename) {}
   /// inserts an object into the index.
   auto insert (const Model &model) -> void {
     tree_.insert(model.*ptr_, model.id());
@@ -40,7 +40,7 @@ class Index {
   auto findOne (const Key &key) -> Optional<Model> {
     auto id = tree_.findOne(key);
     if (!id) return unit;
-    return Model::get(file_, *id);
+    return Model::get(*id);
   }
   /// finds one identifier in the index.
   auto findOneId (const Key &key) -> Optional<int> {
@@ -52,7 +52,7 @@ class Index {
     auto ids = tree_.findMany(key);
     if (ids.size() > 0) res.reserve(ids.size());
     for (auto id : ids) {
-      res.push_back(Model::get(file_, id));
+      res.push_back(Model::get(id));
     }
     return res;
   }
@@ -63,7 +63,6 @@ class Index {
  private:
   Key Model::*ptr_;
   BpTree<Key, int> tree_;
-  DataFile &file_;
 };
 
 /**
@@ -71,8 +70,8 @@ class Index {
  *
  * It makes use of hashes to speed up the process.
  */
-template <size_t maxLength, typename Model, typename DataFile>
-class Index<Varchar<maxLength>, Model, DataFile> {
+template <size_t maxLength, typename Model>
+class Index<Varchar<maxLength>, Model> {
  private:
   using Key = Varchar<maxLength>;
  public:
@@ -82,8 +81,8 @@ class Index<Varchar<maxLength>, Model, DataFile> {
    * @param filename file to store the key.
    * @param datafile the main file where data is stored.
    */
-  Index (Key Model::*ptr, const char *filename, DataFile &datafile)
-    : ptr_(ptr), tree_(filename), file_(datafile) {}
+  Index (Key Model::*ptr, const char *filename)
+    : ptr_(ptr), tree_(filename) {}
   /// inserts an object into the index.
   auto insert (const Model &model) -> void {
     tree_.insert(model.*ptr_.hash(), model.id());
@@ -96,7 +95,7 @@ class Index<Varchar<maxLength>, Model, DataFile> {
   auto findOne (const Key &key) -> Optional<Model> {
     auto id = tree_.findOne(key.hash());
     if (!id) return unit;
-    return Model::get(file_, *id);
+    return Model::get(*id);
   }
   /// finds one identifier in the index.
   auto findOneId (const Key &key) -> Optional<int> {
@@ -108,7 +107,7 @@ class Index<Varchar<maxLength>, Model, DataFile> {
     auto ids = tree_.findMany(key.hash());
     if (ids.size() > 0) res.reserve(ids.size());
     for (auto id : ids) {
-      res.push_back(Model::get(file_, id));
+      res.push_back(Model::get(id));
     }
     return res;
   }
@@ -119,7 +118,6 @@ class Index<Varchar<maxLength>, Model, DataFile> {
  private:
   Key Model::*ptr_;
   BpTree<size_t, int> tree_;
-  DataFile &file_;
 };
 
 } // namespace ticket::file
