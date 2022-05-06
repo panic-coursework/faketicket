@@ -71,6 +71,18 @@ class Pair {
   template <class U1, class U2>
   Pair (Pair<U1, U2> &&other) : first(other.first), second(other.second) {}
 };
+/// A triplet of objects.
+template <typename T1, typename T2, typename T3>
+class Triple {
+ public:
+  T1 first;
+  T2 second;
+  T3 third;
+  constexpr Triple () : first(), second(), third() {}
+  Triple (const Triple &other) = default;
+  Triple (Triple &&other) noexcept = default;
+  Triple (const T1 &x, const T2 &y, const T3 &z) : first(x), second(y), third(z) {}
+};
 
 /// Comparison utilities.
 template <typename Lt>
