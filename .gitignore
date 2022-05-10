@@ -20,7 +20,6 @@ docs/latex
 
 *.ix
 orders
-pending-orders
 rollback-log
 trains
 ride-seats

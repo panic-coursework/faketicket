@@ -21,29 +21,17 @@ struct OrderBase {
 
   /// gets the corresponding train object.
   auto getTrain () -> Train;
+  /// checks if the pending order is satisfiable.
+  auto satisfiable () -> bool;
 
   static constexpr const char *filename = "orders";
 };
 struct Order : public file::Managed<OrderBase> {
+  Order () = default;
+  Order (const file::Managed<OrderBase> &order)
+    : file::Managed<OrderBase>(order) {}
   static file::Index<User::Id, Order> ixUserId;
-};
-
-
-struct PendingOrderBase {
-  Ride ride;
-  int ixFrom, ixTo;
-  int seats;
-  Order::Id order;
-
-  /// checks if the order is satisfiable.
-  auto satisfiable () -> bool;
-  /// gets the corresponding order object.
-  auto getOrder () -> Order;
-
-  static constexpr const char *filename = "pending-orders";
-};
-struct PendingOrder : public file::Managed<PendingOrderBase> {
-  static file::Index<Ride, PendingOrder> ixRide;
+  static file::Index<Ride, Order> pendingOrders;
 };
 
 /**

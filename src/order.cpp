@@ -8,9 +8,9 @@ namespace ticket {
 file::Index<User::Id, Order> Order::ixUserId
   {&Order::user, "orders.user.ix"};
 
-file::Index<Ride, PendingOrder> PendingOrder::ixRide {
-  &PendingOrder::ride,
-  "pending-orders.ride.ix"
+file::Index<Ride, Order> Order::pendingOrders {
+  &Order::ride,
+  "orders-pending.ride.ix"
 };
 
 auto command::dispatch (const command::BuyTicket &cmd) -> Result<Response, Exception> {

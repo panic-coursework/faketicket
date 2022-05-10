@@ -35,8 +35,7 @@ same contents. You can generate these docs by running
 
 - `orders`: orders
 - `orders.user.ix`: index of orders on username
-- `pending-orders`: pending orders
-- `pending-orders.ride.ix`: index of pending orders on ride
+- `orders-pending.ride.ix`: index of pending orders on ride
   (i.e. train ID and date)
 - `rollback-log`: rollback log
 - `trains`: trains
