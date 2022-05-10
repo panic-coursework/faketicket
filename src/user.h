@@ -21,11 +21,14 @@ struct UserBase {
   Privilege privilege;
 
   /// checks if there is a user with the given username.
-  static auto hasUser (const char *username) -> bool;
+  static auto has (const char *username) -> bool;
 
   static constexpr const char *filename = "users";
 };
 struct User : public file::Managed<UserBase> {
+  User () = default;
+  User (const file::Managed<UserBase> &u)
+    : file::Managed<UserBase>(u) {}
   static file::Index<User::Id, User> ixUsername;
 };
 

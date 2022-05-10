@@ -13,20 +13,20 @@ file::Index<Ride, PendingOrder> PendingOrder::ixRide {
   "pending-orders.ride.ix"
 };
 
-auto command::dispatch (const command::BuyTicket &cmd) -> void {
+auto command::dispatch (const command::BuyTicket &cmd) -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::QueryOrder &cmd) -> void {
+auto command::dispatch (const command::QueryOrder &cmd) -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::RefundTicket &cmd) -> void {
+auto command::dispatch (const command::RefundTicket &cmd) -> Result<Response, Exception> {
   // TODO
 }
 
-auto rollback::dispatch (const rollback::BuyTicket &log) -> void {
+auto rollback::dispatch (const rollback::BuyTicket &log) -> Result<Unit, Exception> {
   // TODO
 }
-auto rollback::dispatch (const rollback::RefundTicket &log) -> void {
+auto rollback::dispatch (const rollback::RefundTicket &log) -> Result<Unit, Exception> {
   // TODO
 }
 

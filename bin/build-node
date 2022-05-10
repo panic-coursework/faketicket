@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ ! -e build/Makefile ]; then
+  bin/clean-node
+  bin/configure-node
+fi
+
+cd build
+make -j

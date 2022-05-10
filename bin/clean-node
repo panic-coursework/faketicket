@@ -1,0 +1,4 @@
+#!/bin/bash
+
+rm -rf build CMakeFiles
+rm -f CMakeCache.txt

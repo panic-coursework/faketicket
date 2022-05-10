@@ -3,10 +3,10 @@
 
 namespace ticket {
 
-auto command::dispatch (const command::Clean & /* unused */) -> void {
+auto command::dispatch (const command::Clean & /* unused */) -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::Exit & /* unused */) -> void {
+auto command::dispatch (const command::Exit & /* unused */) -> Result<Response, Exception> {
   // TODO
 }
 

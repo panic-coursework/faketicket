@@ -25,9 +25,21 @@ class Optional : Variant<Unit, T> {
   /// constructs a empty optional.
   Optional (Unit /* unused */) : VarT(unit) {}
   /// constructs a filled optional.
-  Optional (const T &value) : VarT(value) {}
-  auto operator= (const T &value) -> Optional & {
-    VarT::operator=(value);
+  template <
+    typename Init,
+    typename = std::enable_if_t<!std::is_same_v<Init, Unit>>
+  >
+  Optional (const Init &value) : VarT(T(value)) {}
+  auto operator= (Unit unit) -> Optional & {
+    VarT::operator=(unit);
+    return *this;
+  }
+  template <
+    typename Init,
+    typename = std::enable_if_t<!std::is_same_v<Init, Unit>>
+  >
+  auto operator= (const Init &value) -> Optional & {
+    VarT::operator=(T(value));
     return *this;
   }
   /// true if the optional has value.
