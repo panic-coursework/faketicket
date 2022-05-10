@@ -28,8 +28,23 @@ template <typename ResultType, typename ErrorType>
 class Result : public Variant<ResultType, ErrorType> {
  public:
   Result () = delete;
-  template <typename T>
-  Result (const T &value) : Variant<ResultType, ErrorType>(value) {}
+  template <
+    typename T,
+    typename = std::enable_if_t<
+      std::is_constructible_v<ResultType, const T &> &&
+      !std::is_constructible_v<ErrorType, const T &>
+    >
+  >
+  Result (const T &value) : Variant<ResultType, ErrorType>(ResultType(value)) {}
+  template <
+    typename T,
+    typename = std::enable_if_t<
+      !std::is_constructible_v<ResultType, const T &> ||
+      std::is_same_v<ErrorType, T>
+    >,
+    typename = std::enable_if_t<std::is_constructible_v<ErrorType, const T &>>
+  >
+  Result (const T &value) : Variant<ResultType, ErrorType>(ErrorType(value)) {}
   auto result () -> ResultType & {
     return *this->template get<ResultType>();
   }

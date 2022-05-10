@@ -12,32 +12,32 @@ file::BpTree<size_t, int> Train::ixStop {"trains.stop.ix"};
 file::Index<Ride, RideSeats> RideSeats::ixRide
   {&RideSeats::ride, "ride-seats.ride.ix"};
 
-auto command::dispatch (const command::AddTrain &cmd) -> void {
+auto command::dispatch (const command::AddTrain &cmd) -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::DeleteTrain &cmd) -> void {
+auto command::dispatch (const command::DeleteTrain &cmd) -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::ReleaseTrain &cmd) -> void {
+auto command::dispatch (const command::ReleaseTrain &cmd) -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::QueryTrain &cmd) -> void {
+auto command::dispatch (const command::QueryTrain &cmd) -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::QueryTicket &cmd) -> void {
+auto command::dispatch (const command::QueryTicket &cmd) -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::QueryTransfer &cmd) -> void {
+auto command::dispatch (const command::QueryTransfer &cmd) -> Result<Response, Exception> {
   // TODO
 }
 
-auto rollback::dispatch (const rollback::AddTrain &log) -> void {
+auto rollback::dispatch (const rollback::AddTrain &log) -> Result<Unit, Exception> {
   // TODO
 }
-auto rollback::dispatch (const rollback::DeleteTrain &log) -> void {
+auto rollback::dispatch (const rollback::DeleteTrain &log) -> Result<Unit, Exception> {
   // TODO
 }
-auto rollback::dispatch (const rollback::ReleaseTrain &log) -> void {
+auto rollback::dispatch (const rollback::ReleaseTrain &log) -> Result<Unit, Exception> {
   // TODO
 }
 

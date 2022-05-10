@@ -8,6 +8,11 @@ namespace ticket::command {
 auto parse (std::string &str)
   -> Result<Command, ParseException> {
   auto argv = split(str, ' ');
+  return parse(argv);
+}
+
+auto parse (const Vector<std::string_view> &argv)
+  -> Result<Command, ParseException> {
   auto &argv0 = argv[0];
   if (argv0 == "add_user") {
     AddUser res;
@@ -29,7 +34,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "login") {
     Login res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -42,7 +47,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "logout") {
     Logout res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -53,7 +58,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "query_profile") {
     QueryProfile res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -66,7 +71,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "modify_profile") {
     ModifyProfile res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -87,7 +92,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "add_train") {
     AddTrain res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -137,7 +142,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "delete_train") {
     DeleteTrain res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -148,7 +153,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "release_train") {
     ReleaseTrain res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -159,7 +164,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "query_train") {
     QueryTrain res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -172,7 +177,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "query_ticket") {
     QueryTicket res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -189,7 +194,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "query_transfer") {
     QueryTransfer res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -206,7 +211,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "buy_ticket") {
     BuyTicket res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -229,7 +234,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "query_order") {
     QueryOrder res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -240,7 +245,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "refund_ticket") {
     RefundTicket res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -253,7 +258,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "rollback") {
     Rollback res;
     for (int i = 1; i < argv.size(); ++i) {
@@ -264,7 +269,7 @@ auto parse (std::string &str)
         return ParseException();
       }
     }
-    return Command(res);
+    return res;
   } else if (argv0 == "clean") {
     return Command(Clean());
   } else if (argv0 == "exit") {

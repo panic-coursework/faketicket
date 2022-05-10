@@ -9,6 +9,7 @@ set(TICKET_INCLUDES
   ${ticket_SOURCE_DIR}/lib
   ${ticket_SOURCE_DIR}/src
 )
+include_directories(${TICKET_INCLUDES})
 
 set(TICKET_LIB_SOURCES
   lib/datetime.cpp
@@ -17,35 +18,49 @@ set(TICKET_LIB_SOURCES
 
 set(TICKET_SOURCES
   ${TICKET_LIB_SOURCES}
-  src/main.cpp
   src/misc.cpp
   src/order.cpp
   src/parser.cpp
+  src/response.cpp
   src/rollback.cpp
   src/train.cpp
   src/user.cpp
 )
 
-add_executable(code ${TICKET_SOURCES})
-target_include_directories(code PRIVATE ${TICKET_INCLUDES})
+if(DEFINED CMAKE_JS_INC)
+  set(CMAKE_CXX_FLAGS "-g -DBUILD_NODEJS")
+  include_directories(${CMAKE_JS_INC})
+  add_library(ticket SHARED src/node.cpp ${TICKET_SOURCES} ${CMAKE_JS_SRC})
+  execute_process(COMMAND node -p "require('node-addon-api').include"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE NODE_ADDON_API_DIR
+  )
+  string(REPLACE "\n" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
+  string(REPLACE "\"" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
+  target_include_directories(ticket PRIVATE ${NODE_ADDON_API_DIR})
+  set_target_properties(ticket PROPERTIES PREFIX "" SUFFIX ".node")
+  target_link_libraries(ticket ${CMAKE_JS_LIB})
+else()
+  add_executable(code ${TICKET_SOURCES} src/main.cpp)
 
-enable_testing()
-set(TICKET_TEST_SOURCES
-  lib/datetime_test.cpp
-  lib/file/bptree_test.cpp
-  lib/hashmap_test.cpp
-  lib/map_test.cpp
-  lib/result_test.cpp
-  lib/utility_test.cpp
-  lib/variant_test.cpp
-)
+  enable_testing()
+  set(TICKET_TEST_SOURCES
+    lib/datetime_test.cpp
+    lib/file/bptree_test.cpp
+    lib/hashmap_test.cpp
+    lib/map_test.cpp
+    lib/result_test.cpp
+    lib/utility_test.cpp
+    lib/variant_test.cpp
+  )
 
-foreach(test ${TICKET_TEST_SOURCES})
-  string(MD5 testmd5 ${test})
-  string(SUBSTRING ${testmd5} 0 6 testmd5)
-  get_filename_component(TName ${test} NAME_WE)
-  set(testexe ${testmd5}-${TName})
-  add_executable(${testexe} ${test} ${TICKET_LIB_SOURCES})
-  target_include_directories(${testexe} PRIVATE ${TICKET_INCLUDES})
-  add_test(NAME ${testexe} COMMAND bin/run-test ${testexe})
-endforeach()
+  foreach(test ${TICKET_TEST_SOURCES})
+    string(MD5 testmd5 ${test})
+    string(SUBSTRING ${testmd5} 0 6 testmd5)
+    get_filename_component(TName ${test} NAME_WE)
+    set(testexe ${testmd5}-${TName})
+    add_executable(${testexe} ${test} ${TICKET_LIB_SOURCES})
+    target_include_directories(${testexe} PRIVATE ${TICKET_INCLUDES})
+    add_test(NAME ${testexe} COMMAND bin/run-test ${testexe})
+  endforeach()
+endif()

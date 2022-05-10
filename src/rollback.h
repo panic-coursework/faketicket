@@ -8,6 +8,12 @@
 #include "user.h"
 #include "variant.h"
 
+namespace ticket {
+/// sets the current timestamp.
+auto setTimestamp (int timestamp) -> void;
+} // namespace ticket
+
+
 namespace ticket::rollback {
 
 struct AddUser {
@@ -44,8 +50,7 @@ struct RefundTicket {
 };
 
 struct LogEntryBase {
-  int timestamp;
-  Variant<
+  using Content = Variant<
     AddUser,
     ModifyProfile,
     AddTrain,
@@ -53,11 +58,17 @@ struct LogEntryBase {
     ReleaseTrain,
     BuyTicket,
     RefundTicket
-  > content;
+  >;
+
+  int timestamp;
+  Content content;
 
   static constexpr const char *filename = "rollback-log";
 };
 using LogEntry = file::Managed<LogEntryBase>;
+
+/// inserts a log entry.
+auto log (const LogEntry::Content &content) -> void;
 
 /**
  * @brief Visitor for the log entries.
@@ -65,13 +76,13 @@ using LogEntry = file::Managed<LogEntryBase>;
  * The implementations are in the corresponding source
  * files, not in rollback.cpp.
  */
-auto dispatch (const AddUser &log) -> void;
-auto dispatch (const ModifyProfile &log) -> void;
-auto dispatch (const AddTrain &log) -> void;
-auto dispatch (const DeleteTrain &log) -> void;
-auto dispatch (const ReleaseTrain &log) -> void;
-auto dispatch (const BuyTicket &log) -> void;
-auto dispatch (const RefundTicket &log) -> void;
+auto dispatch (const AddUser &log) -> Result<Unit, Exception>;
+auto dispatch (const ModifyProfile &log) -> Result<Unit, Exception>;
+auto dispatch (const AddTrain &log) -> Result<Unit, Exception>;
+auto dispatch (const DeleteTrain &log) -> Result<Unit, Exception>;
+auto dispatch (const ReleaseTrain &log) -> Result<Unit, Exception>;
+auto dispatch (const BuyTicket &log) -> Result<Unit, Exception>;
+auto dispatch (const RefundTicket &log) -> Result<Unit, Exception>;
 
 } // namespace ticket::rollback
 

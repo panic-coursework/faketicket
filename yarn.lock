@@ -2,6 +2,11 @@
 # yarn lockfile v1
 
 
+node-addon-api@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.npmjs.org/node-addon-api/-/node-addon-api-5.0.0.tgz#7d7e6f9ef89043befdb20c1989c905ebde18c501"
+  integrity sha512-CvkDw2OEnme7ybCykJpVcKH+uAOLV2qLqiyla128dN9TkEWfrYmxG6C2boDe5KcNQqZF3orkqzGgOMvZ/JNekA==
+
 yaml@^2.0.1:
   version "2.0.1"
   resolved "https://registry.npmjs.org/yaml/-/yaml-2.0.1.tgz#71886d6021f3da28169dbefde78d4dd0f8d83650"

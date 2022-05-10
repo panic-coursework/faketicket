@@ -21,6 +21,7 @@ namespace ticket::file {
 template <int maxLength>
 struct Varchar {
  public:
+  static constexpr int kMaxLength = maxLength;
   Varchar () { content[0] = '\0'; }
   Varchar (const std::string &s) {
     if (s.length() > maxLength) {
@@ -44,7 +45,7 @@ struct Varchar {
     return std::string(*this);
   }
 
-  auto length () -> int {
+  auto length () const -> int {
     return strlen(content);
   }
 

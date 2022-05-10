@@ -8,6 +8,7 @@
   "license": "GPL-3.0",
   "private": true,
   "dependencies": {
+    "node-addon-api": "^5.0.0",
     "yaml": "^2.0.1"
   }
 }

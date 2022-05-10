@@ -9,6 +9,7 @@
 #include "optional.h"
 #include "variant.h"
 #include "result.h"
+#include "response.h"
 
 /// Classes and parsers for commands.
 namespace ticket::command {
@@ -146,6 +147,8 @@ using Command = Variant<
  */
 auto parse (std::string &str)
   -> Result<Command, ParseException>;
+auto parse (const Vector<std::string_view> &argv)
+  -> Result<Command, ParseException>;
 
 /**
  * @brief Visitor for the commands.
@@ -157,23 +160,23 @@ auto parse (std::string &str)
  * The implementations are in the corresponding source
  * files, not in parser.cpp.
  */
-auto dispatch (const AddUser &cmd) -> void;
-auto dispatch (const Login &cmd) -> void;
-auto dispatch (const Logout &cmd) -> void;
-auto dispatch (const QueryProfile &cmd) -> void;
-auto dispatch (const ModifyProfile &cmd) -> void;
-auto dispatch (const AddTrain &cmd) -> void;
-auto dispatch (const DeleteTrain &cmd) -> void;
-auto dispatch (const ReleaseTrain &cmd) -> void;
-auto dispatch (const QueryTrain &cmd) -> void;
-auto dispatch (const QueryTicket &cmd) -> void;
-auto dispatch (const QueryTransfer &cmd) -> void;
-auto dispatch (const BuyTicket &cmd) -> void;
-auto dispatch (const QueryOrder &cmd) -> void;
-auto dispatch (const RefundTicket &cmd) -> void;
-auto dispatch (const Rollback &cmd) -> void;
-auto dispatch (const Clean &cmd) -> void;
-auto dispatch (const Exit &cmd) -> void;
+auto dispatch (const AddUser &cmd) -> Result<Response, Exception>;
+auto dispatch (const Login &cmd) -> Result<Response, Exception>;
+auto dispatch (const Logout &cmd) -> Result<Response, Exception>;
+auto dispatch (const QueryProfile &cmd) -> Result<Response, Exception>;
+auto dispatch (const ModifyProfile &cmd) -> Result<Response, Exception>;
+auto dispatch (const AddTrain &cmd) -> Result<Response, Exception>;
+auto dispatch (const DeleteTrain &cmd) -> Result<Response, Exception>;
+auto dispatch (const ReleaseTrain &cmd) -> Result<Response, Exception>;
+auto dispatch (const QueryTrain &cmd) -> Result<Response, Exception>;
+auto dispatch (const QueryTicket &cmd) -> Result<Response, Exception>;
+auto dispatch (const QueryTransfer &cmd) -> Result<Response, Exception>;
+auto dispatch (const BuyTicket &cmd) -> Result<Response, Exception>;
+auto dispatch (const QueryOrder &cmd) -> Result<Response, Exception>;
+auto dispatch (const RefundTicket &cmd) -> Result<Response, Exception>;
+auto dispatch (const Rollback &cmd) -> Result<Response, Exception>;
+auto dispatch (const Clean &cmd) -> Result<Response, Exception>;
+auto dispatch (const Exit &cmd) -> Result<Response, Exception>;
 
 } // namespace ticket::command
 

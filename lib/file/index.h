@@ -60,6 +60,10 @@ class Index {
   auto findManyId (const Key &key) -> Vector<int> {
     return tree_.findMany(key);
   }
+  /// checks if the index is empty.
+  auto empty () -> bool {
+    return tree_.empty();
+  }
  private:
   Key Model::*ptr_;
   BpTree<Key, int> tree_;
@@ -114,6 +118,10 @@ class Index<Varchar<maxLength>, Model> {
   /// finds all IDs of the given keys in the index.
   auto findManyId (const Key &key) -> Vector<int> {
     return tree_.findMany(key.hash());
+  }
+  /// checks if the index is empty.
+  auto empty () -> bool {
+    return tree_.empty();
   }
  private:
   Key Model::*ptr_;

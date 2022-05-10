@@ -5,6 +5,7 @@
 #include "file/index.h"
 #include "train.h"
 #include "user.h"
+#include "variant.h"
 
 namespace ticket {
 
@@ -44,6 +45,27 @@ struct PendingOrderBase {
 struct PendingOrder : public file::Managed<PendingOrderBase> {
   static file::Index<Ride, PendingOrder> ixRide;
 };
+
+/**
+ * @brief Utility class to represent the result of a buy
+ * ticket request that a pending order has been created.
+ *
+ * See BuyTicketResponse below for usage.
+ */
+struct BuyTicketEnqueued {};
+/**
+ * @brief Utility class to represent the result of a buy
+ * ticket request that the order has been processed.
+ *
+ * See BuyTicketResponse below for usage.
+ */
+struct BuyTicketSuccess {
+  int price;
+};
+using BuyTicketResponse = Variant<
+  BuyTicketSuccess,
+  BuyTicketEnqueued
+>;
 
 } // namespace ticket
 

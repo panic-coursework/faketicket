@@ -272,6 +272,10 @@ template <
   auto count (const Key &key) const -> size_t {
     return find(key) == cend() ? 0 : 1;
   }
+  /// Checks if there is an element with key equivalent to key in the container.
+  auto contains (const Key &key) const -> bool {
+    return find(key) == cend() ? false : true;
+  }
 
   /**
    * Finds an element with key equivalent to key.

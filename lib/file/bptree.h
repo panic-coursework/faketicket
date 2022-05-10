@@ -82,6 +82,10 @@ class BpTree {
   auto includes (const KeyType &key, const ValueType &value) -> bool {
     return includes_({ .key = key, .value = value }, Node::root(*this));
   }
+  /// checks if the tree is empty.
+  auto empty () -> bool {
+    return Node::root(*this).length() == 0;
+  }
 
   /// gets user-provided metadata.
   auto getMeta () -> Meta {

@@ -123,6 +123,10 @@ using Less = Cmp<Lt>;
 template <typename Lt = internal::LessOp>
 using Greater = Cmp<internal::GreaterOp<Lt>>;
 
+inline auto isVisibleChar (char ch) -> bool {
+  return ch >= '\x21' && ch <= '\x7E';
+}
+
 } // namespace ticket
 
 #endif // TICKET_LIB_UTILITY_H_
