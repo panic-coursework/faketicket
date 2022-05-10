@@ -75,6 +75,9 @@ struct TrainBase {
   static constexpr const char *filename = "trains";
 };
 struct Train : public file::Managed<TrainBase> {
+  Train () = default;
+  Train (const file::Managed<TrainBase> &train)
+    : file::Managed<TrainBase>(train) {}
   static file::Index<Train::Id, Train> ixId;
   static file::BpTree<size_t, int> ixStop;
 };
@@ -102,6 +105,9 @@ struct RideSeatsBase {
   static constexpr const char *filename = "ride-seats";
 };
 struct RideSeats : public file::Managed<RideSeatsBase> {
+  RideSeats () = default;
+  RideSeats (const file::Managed<RideSeatsBase> &rideSeats)
+    : file::Managed<RideSeatsBase>(rideSeats) {}
   static file::Index<Ride, RideSeats> ixRide;
 };
 

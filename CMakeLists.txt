@@ -3,7 +3,7 @@ project(ticket)
 include(CTest)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "-g")
+set(CMAKE_CXX_FLAGS "-g -Wno-invalid-offsetof")
 
 set(TICKET_INCLUDES
   ${ticket_SOURCE_DIR}/lib
@@ -28,7 +28,7 @@ set(TICKET_SOURCES
 )
 
 if(DEFINED CMAKE_JS_INC)
-  set(CMAKE_CXX_FLAGS "-g -DBUILD_NODEJS")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_NODEJS")
   include_directories(${CMAKE_JS_INC})
   add_library(ticket SHARED src/node.cpp ${TICKET_SOURCES} ${CMAKE_JS_SRC})
   execute_process(COMMAND node -p "require('node-addon-api').include"

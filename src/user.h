@@ -27,8 +27,8 @@ struct UserBase {
 };
 struct User : public file::Managed<UserBase> {
   User () = default;
-  User (const file::Managed<UserBase> &u)
-    : file::Managed<UserBase>(u) {}
+  User (const file::Managed<UserBase> &user)
+    : file::Managed<UserBase>(user) {}
   static file::Index<User::Id, User> ixUsername;
 };
 
