@@ -107,6 +107,12 @@ class File {
     cache_.clear();
   }
 
+  /// clears file contents.
+  auto truncate () -> void {
+    Metadata meta(0, false);
+    set(&meta, -1, sizeof(meta));
+  }
+
  private:
   struct Metadata {
     size_t next;
@@ -143,8 +149,7 @@ class File {
       throw IoException("Unable to open file");
     }
     if (shouldCreate) {
-      Metadata meta(0, false);
-      set(&meta, -1, sizeof(meta));
+      truncate();
       initializer();
     }
   }
@@ -198,6 +203,10 @@ class Managed : public T {
     file.get(unmanaged, id, sizeof(T));
     managed->id_ = id;
     return *managed;
+  }
+  /// hard deletes all objects.
+  static auto truncate () -> void {
+    file.truncate();
   }
 
   /**

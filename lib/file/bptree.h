@@ -103,6 +103,11 @@ class BpTree {
    * using up too much memory.
    */
   auto clearCache () -> void { file_.clearCache(); }
+  /// hard deletes all entries in the tree.
+  auto truncate () -> void {
+    file_.truncate();
+    init_();
+  }
 
 #ifdef TICKET_DEBUG
   auto print () -> void { print_(Node::root(*this)); }

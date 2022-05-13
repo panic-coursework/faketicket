@@ -20,7 +20,7 @@ using Response = Variant<
   Train,
   Vector<Train>,
   BuyTicketResponse,
-  Order
+  Vector<Order>
   // the exit command does not need a response object.
 >;
 
@@ -31,7 +31,7 @@ auto cout (const User &user) -> void;
 auto cout (const Train &train) -> void;
 auto cout (const Vector<Train> &trains) -> void;
 auto cout (const BuyTicketResponse &ticket) -> void;
-auto cout (const Order &order) -> void;
+auto cout (const Vector<Order> &orders) -> void;
 
 #ifdef BUILD_NODEJS
 
@@ -40,7 +40,7 @@ auto toJsObject (Napi::Env env, const User &user) -> Napi::Object;
 auto toJsObject (Napi::Env env, const Train &train) -> Napi::Object;
 auto toJsObject (Napi::Env env, const Vector<Train> &trains) -> Napi::Object;
 auto toJsObject (Napi::Env env, const BuyTicketResponse &ticket) -> Napi::Object;
-auto toJsObject (Napi::Env env, const Order &order) -> Napi::Object;
+auto toJsObject (Napi::Env env, const Vector<Order> &orders) -> Napi::Object;
 
 #endif // BUILD_NODEJS
 

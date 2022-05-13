@@ -64,6 +64,11 @@ class Index {
   auto empty () -> bool {
     return tree_.empty();
   }
+
+  /// deletes all entries.
+  auto truncate () -> void {
+    tree_.truncate();
+  }
  private:
   Key Model::*ptr_;
   BpTree<Key, int> tree_;
@@ -109,11 +114,7 @@ class Index<Varchar<maxLength>, Model> {
   auto findMany (const Key &key) -> Vector<Model> {
     Vector<Model> res;
     auto ids = tree_.findMany(key.hash());
-    if (ids.size() > 0) res.reserve(ids.size());
-    for (auto id : ids) {
-      res.push_back(Model::get(id));
-    }
-    return res;
+    return ids.map(Model::get);
   }
   /// finds all IDs of the given keys in the index.
   auto findManyId (const Key &key) -> Vector<int> {
@@ -122,6 +123,11 @@ class Index<Varchar<maxLength>, Model> {
   /// checks if the index is empty.
   auto empty () -> bool {
     return tree_.empty();
+  }
+
+  /// deletes all entries.
+  auto truncate () -> void {
+    tree_.truncate();
   }
  private:
   Key Model::*ptr_;

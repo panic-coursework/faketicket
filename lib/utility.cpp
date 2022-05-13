@@ -24,12 +24,9 @@ auto split (std::string &str, char sep)
 
 auto copyStrings (const Vector<std::string_view> &vec)
   -> Vector<std::string> {
-  Vector<std::string> res;
-  res.reserve(vec.size());
-  for (const auto &str : vec) {
-    res.push_back(std::string(str));
-  }
-  return res;
+  return vec.map([] (const auto &x) {
+    return std::string(x);
+  });
 }
 
 }

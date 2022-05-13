@@ -17,7 +17,7 @@ namespace ticket::file {
 template <typename T, size_t maxLength, typename Cmp = Less<>>
 struct Array {
  private:
-  auto boundsCheck_ (size_t index) -> void {
+  auto boundsCheck_ (size_t index) const -> void {
     if (index >= length) throw OutOfBounds("Array: overflow or underflow");
   }
   Cmp cmp_;

@@ -17,9 +17,13 @@ auto cout (const Vector<Train> &trains) -> void {
   // TODO
 }
 auto cout (const BuyTicketResponse &ticket) -> void {
-  // TODO
+  if (auto succ = ticket.get<BuyTicketSuccess>()) {
+    std::cout << succ->price << '\n';
+  } else {
+    std::cout << "queue\n";
+  }
 }
-auto cout (const Order &order) -> void {
+auto cout (const Vector<Order> &order) -> void {
   // TODO
 }
 
@@ -30,10 +34,12 @@ auto cout (const Order &order) -> void {
 #define JS_NUM(x) Napi::Number::New(env, x)
 #define JS_ARR(length) Napi::Array::New(env, length)
 
-auto toJsObject (Napi::Env env, const Unit & /* unused */) -> Napi::Object {
+auto toJsObject (Napi::Env env, const Unit & /* unused */)
+  -> Napi::Object {
   return Napi::Object::New(env);
 }
-auto toJsObject (Napi::Env env, const User &user) -> Napi::Object {
+auto toJsObject (Napi::Env env, const User &user)
+  -> Napi::Object {
   auto obj = JS_OBJ();
   obj["username"] = JS_STR(user.username.str());
   obj["name"] = JS_STR(user.name.str());
@@ -41,24 +47,37 @@ auto toJsObject (Napi::Env env, const User &user) -> Napi::Object {
   obj["privilege"] = JS_NUM(user.privilege);
   return obj;
 }
-auto toJsObject (Napi::Env env, const Train &train) -> Napi::Object {
+auto toJsObject (Napi::Env env, const Train &train)
+  -> Napi::Object {
   // TODO
 }
-auto toJsObject (Napi::Env env, const Vector<Train> &trains) -> Napi::Object {
+auto toJsObject (Napi::Env env, const Vector<Train> &trains)
+  -> Napi::Object {
   // TODO
 }
-auto toJsObject (Napi::Env env, const BuyTicketResponse &ticket) -> Napi::Object {
+
+auto toJsObject (
+  Napi::Env env,
+  const BuyTicketResponse &ticket
+) -> Napi::Object {
   auto obj = JS_OBJ();
-  if (ticket.is<BuyTicketEnqueued>()) {
-    obj["status"] = JS_STR("enqueued");
-  } else {
+  if (auto succ = ticket.get<BuyTicketSuccess>()) {
     obj["status"] = JS_STR("success");
-    obj["price"] = JS_NUM(ticket.get<BuyTicketSuccess>()->price);
+    obj["price"] = JS_NUM(succ->price);
+  } else {
+    obj["status"] = JS_STR("enqueued");
   }
   return obj;
 }
-auto toJsObject (Napi::Env env, const Order &order) -> Napi::Object {
-  // TODO
+
+auto toJsObject (Napi::Env env, const Vector<Order> &orders)
+  -> Napi::Object {
+  auto arr = JS_ARR(0);
+  for (int i = 0; i < orders.size(); ++i) {
+    auto jsOrder = arr[i] = JS_OBJ();
+    const auto &order = orders[i];
+    // TODO
+  }
 }
 
 #undef JS_OBJ

@@ -17,12 +17,11 @@ struct OrderBase {
   Ride ride;
   int ixFrom, ixTo;
   int seats;
+  int price;
   Status status;
 
   /// gets the corresponding train object.
   auto getTrain () -> Train;
-  /// checks if the pending order is satisfiable.
-  auto satisfiable () -> bool;
 
   static constexpr const char *filename = "orders";
 };
