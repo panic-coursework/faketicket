@@ -62,6 +62,12 @@ same contents. You can generate these docs by running
 - `users`: users
 - `users.username.ix`: index of users on username
 
+### Checklist when adding/removing files
+
+- [ ] Add/Remove the file::File instance
+- [ ] Update the list above
+- [ ] Update command::Clean in src/misc.cpp
+
 ### Data flow
 
 ```plain

@@ -8,7 +8,7 @@
 #include "file/file.h"
 #include "file/index.h"
 #include "file/varchar.h"
-#include "result.h"
+#include "optional.h"
 
 namespace ticket {
 
@@ -39,39 +39,6 @@ struct TrainBase {
   bool released = false;
   bool deleted = false;
 
-  /// finds the index of the station of the given name.
-  auto indexOfStop (const std::string &name) -> Result<int, NotFound>;
-  /// calculates the total price of a trip.
-  auto totalPrice (int ixDeparture, int ixArrival) -> int;
-
-  /**
-   * @brief gets the remaining seats object on a given date.
-   * @param date the departure date of the entire train
-   *             (i.e. not the departure date of a stop).
-   */
-  auto getRide (Date date) -> RideSeats;
-  /**
-   * @brief gets the remaining seats object on a given date
-   *        at a given stop.
-   * @param date the departure date of a stop.
-   * @param ixDeparture the index of the departing stop.
-   */
-  auto getRide (Date date, int ixDeparture) -> RideSeats;
-
-  /**
-   * @brief checks if the train has a ride departing from
-   *        the first station on the given date.
-   * @param date the departure date of the first station.
-   */
-  auto runsOnDate (Date date) -> bool;
-  /**
-   * @brief checks if the train has a ride departing from
-   *        the given station on the given date.
-   * @param date the departure date of the given station.
-   * @param ixDeparture the index of the departing stop.
-   */
-  auto runsOnDate (Date date, int ixDeparture) -> bool;
-
   static constexpr const char *filename = "trains";
 };
 struct Train : public file::Managed<TrainBase> {
@@ -80,6 +47,27 @@ struct Train : public file::Managed<TrainBase> {
     : file::Managed<TrainBase>(train) {}
   static file::Index<Train::Id, Train> ixId;
   static file::BpTree<size_t, int> ixStop;
+
+  /// finds the index of the station of the given name.
+  auto indexOfStop (const std::string &name) const
+    -> Optional<int>;
+  /// calculates the total price of a trip.
+  auto totalPrice (int ixFrom, int ixTo) const -> int;
+
+  /**
+   * @brief gets the remaining seats object on a given date.
+   * @param date the departure date of the entire train
+   *             (i.e. not the departure date of a stop).
+   */
+  auto getRide (Date date) const -> Optional<RideSeats>;
+  /**
+   * @brief gets the remaining seats object on a given date
+   *        at a given stop.
+   * @param date the departure date of a stop.
+   * @param ixDeparture the index of the departing stop.
+   */
+  auto getRide (Date date, int ixDeparture) const
+    -> Optional<RideSeats>;
 };
 
 
@@ -100,7 +88,9 @@ struct RideSeatsBase {
    * @param ixFrom index of the departing stop
    * @param ixTo index of the arriving stop
    */
-  auto ticketsAvailable (int ixFrom, int ixTo) -> int;
+  auto ticketsAvailable (int ixFrom, int ixTo) const -> int;
+  /// adds dx to seatsRemaining[ixFrom, ixTo] inclusive.
+  auto rangeAdd (int dx, int ixFrom, int ixTo) -> void;
 
   static constexpr const char *filename = "ride-seats";
 };

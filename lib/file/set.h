@@ -14,7 +14,7 @@ namespace ticket::file {
 template <typename T, size_t maxLength, typename Cmp = Less<>>
 struct Set {
  private:
-  auto boundsCheck_ (size_t index) -> void {
+  auto boundsCheck_ (size_t index) const -> void {
     if (index >= length) {
       throw OutOfBounds("Set: overflow or underflow");
     }

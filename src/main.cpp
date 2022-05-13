@@ -14,6 +14,7 @@ auto main () -> int {
 #endif // ONLINE_JUDGE
 
   while (true) {
+    // parse timestamp
     char c1 = std::cin.get();
     TICKET_ASSERT(c1 == '[');
     int timestamp;
@@ -21,6 +22,8 @@ auto main () -> int {
     ticket::setTimestamp(timestamp);
     char c2 = std::cin.get();
     TICKET_ASSERT(c2 == ']');
+
+    // main command
     std::string input;
     std::getline(std::cin, input);
     auto cmd = ticket::command::parse(input);
@@ -28,6 +31,7 @@ auto main () -> int {
       std::cerr << err->what() << std::endl;
       return 1;
     }
+
     cmd.result().visit([] (const auto &args) {
       auto res = ticket::command::dispatch(args);
       if (res.error()) {

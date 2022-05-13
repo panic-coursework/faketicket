@@ -4,6 +4,7 @@
 #include "file/file.h"
 #include "optional.h"
 #include "order.h"
+#include "result.h"
 #include "train.h"
 #include "user.h"
 #include "variant.h"
@@ -49,6 +50,11 @@ struct RefundTicket {
   Order::Status status;
 };
 
+// this is not a command, but rather used in ticket refunds.
+struct FulfillOrder {
+  int id;
+};
+
 struct LogEntryBase {
   using Content = Variant<
     AddUser,
@@ -57,7 +63,8 @@ struct LogEntryBase {
     DeleteTrain,
     ReleaseTrain,
     BuyTicket,
-    RefundTicket
+    RefundTicket,
+    FulfillOrder
   >;
 
   int timestamp;
@@ -83,6 +90,7 @@ auto dispatch (const DeleteTrain &log) -> Result<Unit, Exception>;
 auto dispatch (const ReleaseTrain &log) -> Result<Unit, Exception>;
 auto dispatch (const BuyTicket &log) -> Result<Unit, Exception>;
 auto dispatch (const RefundTicket &log) -> Result<Unit, Exception>;
+auto dispatch (const FulfillOrder &log) -> Result<Unit, Exception>;
 
 } // namespace ticket::rollback
 

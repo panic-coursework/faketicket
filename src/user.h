@@ -22,6 +22,9 @@ struct UserBase {
 
   /// checks if there is a user with the given username.
   static auto has (const char *username) -> bool;
+  /// checks if the user is logged in.
+  static auto isLoggedIn (const std::string &username)
+    -> bool;
 
   static constexpr const char *filename = "users";
 };

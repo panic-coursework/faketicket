@@ -6,6 +6,7 @@
 #include <iterator>
 
 #include "exception.h"
+#include "utility.h"
 
 namespace ticket {
 
@@ -282,6 +283,37 @@ class Vector {
 
   auto reserve (size_t capacity) -> void {
     if (capacity_ < capacity) grow_(capacity);
+  }
+
+  // TODO: docs
+  template <typename Functor>
+  auto map (const Functor &fn) const
+    -> Vector<decltype(fn(at(0)))> {
+    Vector<decltype(fn(at(0)))> res;
+    res.reserve(capacity_);
+    for (int i = 0; i < size_; ++i) {
+      res.push_back(fn(storage_[i]));
+    }
+    return res;
+  }
+
+  template <typename Functor>
+  auto reduce (const Functor &fn) const -> T {
+    TICKET_ASSERT(size_ > 0);
+    auto prev = storage_[0];
+    for (int i = 1; i < size_; ++i) {
+      prev = fn(prev, storage_[i]);
+    }
+    return prev;
+  }
+  template <typename Functor, typename Res>
+  auto reduce (const Functor &fn, const Res &init) const
+    -> Res {
+    auto prev = init;
+    for (int i = 0; i < size_; ++i) {
+      prev = fn(prev, storage_[i]);
+    }
+    return prev;
   }
 
  private:

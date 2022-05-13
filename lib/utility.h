@@ -2,16 +2,18 @@
 #ifndef TICKET_LIB_UTILITY_H_
 #define TICKET_LIB_UTILITY_H_
 
-#include <iostream>
-
-#include "vector.h"
-
+// place this macro at the top to avoid cross-dep messing up
+// the macro definition
 #ifdef TICKET_DEBUG
 #include <cassert>
 #define TICKET_ASSERT(x) assert(x)
 #else
 #define TICKET_ASSERT(x)
 #endif // TICKET_DEBUG
+
+#include <iostream>
+
+#include "vector.h"
 
 namespace ticket {
 
