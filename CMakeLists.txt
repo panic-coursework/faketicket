@@ -4,6 +4,7 @@ include(CTest)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-g -Wno-invalid-offsetof")
+set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
 set(TICKET_INCLUDES
   ${ticket_SOURCE_DIR}/lib
@@ -15,9 +16,9 @@ set(TICKET_LIB_SOURCES
   lib/datetime.cpp
   lib/utility.cpp
 )
+add_library(ticketutils OBJECT ${TICKET_LIB_SOURCES})
 
 set(TICKET_SOURCES
-  ${TICKET_LIB_SOURCES}
   src/misc.cpp
   src/order.cpp
   src/parser.cpp
@@ -30,7 +31,7 @@ set(TICKET_SOURCES
 if(DEFINED CMAKE_JS_INC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_NODEJS")
   include_directories(${CMAKE_JS_INC})
-  add_library(ticket SHARED src/node.cpp ${TICKET_SOURCES} ${CMAKE_JS_SRC})
+  add_library(ticket SHARED src/node.cpp ${TICKET_SOURCES} $<TARGET_OBJECTS:ticketutils> ${CMAKE_JS_SRC})
   execute_process(COMMAND node -p "require('node-addon-api').include"
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     OUTPUT_VARIABLE NODE_ADDON_API_DIR
@@ -41,7 +42,7 @@ if(DEFINED CMAKE_JS_INC)
   set_target_properties(ticket PROPERTIES PREFIX "" SUFFIX ".node")
   target_link_libraries(ticket ${CMAKE_JS_LIB})
 else()
-  add_executable(code ${TICKET_SOURCES} src/main.cpp)
+  add_executable(code ${TICKET_SOURCES} $<TARGET_OBJECTS:ticketutils> src/main.cpp)
 
   enable_testing()
   set(TICKET_TEST_SOURCES
@@ -59,8 +60,8 @@ else()
     string(MD5 testmd5 ${test})
     string(SUBSTRING ${testmd5} 0 6 testmd5)
     get_filename_component(TName ${test} NAME_WE)
-    set(testexe ${testmd5}-${TName})
-    add_executable(${testexe} ${test} ${TICKET_LIB_SOURCES})
+    set(testexe ${TName}-${testmd5})
+    add_executable(${testexe} ${test} $<TARGET_OBJECTS:ticketutils>)
     target_include_directories(${testexe} PRIVATE ${TICKET_INCLUDES})
     add_test(NAME ${testexe} COMMAND bin/run-test ${testexe})
   endforeach()
