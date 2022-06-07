@@ -45,6 +45,7 @@ else()
 
   enable_testing()
   set(TICKET_TEST_SOURCES
+    lib/algorithm_test.cpp
     lib/datetime_test.cpp
     lib/file/bptree_test.cpp
     lib/hashmap_test.cpp
