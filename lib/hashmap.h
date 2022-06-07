@@ -274,7 +274,7 @@ template <
   }
   /// Checks if there is an element with key equivalent to key in the container.
   auto contains (const Key &key) const -> bool {
-    return find(key) == cend() ? false : true;
+    return find(key) != cend();
   }
 
   /**

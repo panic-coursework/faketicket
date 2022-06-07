@@ -32,7 +32,7 @@ auto Train::totalPrice (int ixFrom, int ixTo) const -> int {
 }
 auto Train::getRide (Date date) const
   -> Optional<RideSeats> {
-  return RideSeats::ixRide.findOne({(int) id(), date});
+  return RideSeats::ixRide.findOne({id(), date});
 }
 auto Train::getRide (Date date, int ixDeparture) const
   -> Optional<RideSeats> {

@@ -193,7 +193,7 @@ class Managed : public T {
    * this identifier would not change on update, but may be
    * reused when deleted.
    */
-  auto id () const -> size_t { return id_; }
+  auto id () const -> int { return (int) id_; }
 
   /// gets the object at id in file.
   static auto get (size_t id) -> Managed {

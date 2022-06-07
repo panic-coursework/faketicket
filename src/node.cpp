@@ -25,6 +25,7 @@ auto execute (Napi::Env env, const T &cmd) -> Napi::Value {
 
 auto handler (const Napi::CallbackInfo &info)
   -> Napi::Value {
+  auto env = info.Env();
   try {
     auto args = info[0].As<Napi::Array>();
     ticket::Vector<std::string> converted;
@@ -33,24 +34,24 @@ auto handler (const Napi::CallbackInfo &info)
         Napi::Value(args[i]).As<Napi::String>().Utf8Value()
       );
     }
-    ticket::Vector<std::string_view> view;
-    for (const auto &str : converted) view.push_back(str);
+    auto view = converted.map([] (const auto &x)
+      -> std::string_view { return x; });
+
     auto cmd = ticket::command::parse(view);
     if (auto err = cmd.error()) {
-      auto error = Napi::Error::New(
-        info.Env(),
-        err->what()
-      );
+      auto error = Napi::Error::New(env, err->what());
       error.ThrowAsJavaScriptException();
       return {};
     }
+
     Napi::Value res;
-    cmd.result().visit([&info, &res] (const auto &cmd) {
-      res = execute(info.Env(), cmd);
+    cmd.result().visit([&env, &res] (const auto &cmd) {
+      res = execute(env, cmd);
     });
+
     return res;
   } catch (const ticket::Exception &e) {
-    auto error = Napi::Error::New(info.Env(), e.what());
+    auto error = Napi::Error::New(env, e.what());
     error.ThrowAsJavaScriptException();
     return {};
   }

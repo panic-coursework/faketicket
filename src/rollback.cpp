@@ -16,6 +16,7 @@ auto rollback::log (
   entry.content = content;
   entry.save();
 }
+
 auto command::dispatch (const command::Rollback &cmd)
   -> Result<Response, Exception> {
   // TODO
