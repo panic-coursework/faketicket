@@ -50,6 +50,7 @@ else()
     lib/datetime_test.cpp
     lib/file/bptree_test.cpp
     lib/hashmap_test.cpp
+    lib/lru-cache_test.cpp
     lib/map_test.cpp
     lib/result_test.cpp
     lib/utility_test.cpp
