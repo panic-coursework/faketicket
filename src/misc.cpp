@@ -28,7 +28,7 @@ auto command::dispatch (const command::Clean & /* unused */)
 auto command::dispatch (const command::Exit & /* unused */)
   -> Result<Response, Exception> {
   std::cout << "bye\n";
-  exit(1);
+  exit(0);
 }
 
 } // namespace ticket
