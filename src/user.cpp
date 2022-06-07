@@ -5,7 +5,6 @@
 #include "hashmap.h"
 #include "parser.h"
 #include "rollback.h"
-#include "strings.h"
 
 namespace ticket {
 
@@ -41,7 +40,7 @@ auto command::dispatch (const command::AddUser &cmd)
     user.privilege = kDefaultPrivilege;
     user.save();
     User::ixUsername.insert(user);
-    rollback::log((rollback::AddUser){(int) user.id()});
+    rollback::log((rollback::AddUser){user.id()});
     return unit;
   }
 
@@ -55,7 +54,7 @@ auto command::dispatch (const command::AddUser &cmd)
   auto user = makeUser(cmd);
   user.save();
   User::ixUsername.insert(user);
-  rollback::log((rollback::AddUser){(int) user.id()});
+  rollback::log((rollback::AddUser){user.id()});
 
   return unit;
 }
@@ -113,7 +112,7 @@ auto command::dispatch (const command::ModifyProfile &cmd)
   if (auto err = res.error()) return *err;
   auto [ target, op ] = res.result();
 
-  bool sufficientPrivileges = cmd.privilege < op.privilege;
+  bool sufficientPrivileges = *cmd.privilege < op.privilege;
   if (!sufficientPrivileges) {
     return Exception("insufficient privileges");
   }

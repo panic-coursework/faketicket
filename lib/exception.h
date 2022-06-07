@@ -15,7 +15,7 @@ class Exception : public std::exception {
  public:
   Exception () = default;
   Exception (const char *what) : what_(what) {}
-  virtual ~Exception () = default;
+  ~Exception () override = default;
   /// returns a human-readable description of the exception.
   virtual auto what () const noexcept -> const char * {
     return what_;

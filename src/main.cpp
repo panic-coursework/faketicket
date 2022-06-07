@@ -15,12 +15,12 @@ auto main () -> int {
 
   while (true) {
     // parse timestamp
-    char c1 = std::cin.get();
+    char c1 = (char) std::cin.get();
     TICKET_ASSERT(c1 == '[');
     int timestamp;
     std::cin >> timestamp;
     ticket::setTimestamp(timestamp);
-    char c2 = std::cin.get();
+    char c2 = (char) std::cin.get();
     TICKET_ASSERT(c2 == ']');
     std::cout << '[' << timestamp << "] ";
 
