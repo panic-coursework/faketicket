@@ -25,7 +25,7 @@ class Vector {
     using value_type = T;
     using pointer = T *;
     using reference = T &;
-    using iterator_category = std::output_iterator_tag;
+    using iterator_category = std::random_access_iterator_tag;
 
    private:
     Vector *home_;
@@ -49,9 +49,17 @@ class Vector {
       return *this;
     }
     auto operator-= (const int &n) -> iterator & { return (*this += -n); }
-    auto operator++ (int) const -> iterator { return operator+(1); }
+    auto operator++ (int) -> iterator {
+      auto res = *this;
+      ++*this;
+      return res;
+    }
     auto operator++ () -> iterator & { return (*this += 1); }
-    auto operator-- (int) const -> iterator { return operator+(-1); }
+    auto operator-- (int) -> iterator {
+      auto res = *this;
+      --*this;
+      return res;
+    }
     auto operator-- () -> iterator & { return (*this -= 1); }
     auto operator* () const -> T & { return *ptr_; }
     /**
@@ -79,7 +87,7 @@ class Vector {
     using value_type = T;
     using pointer = T *;
     using reference = T &;
-    using iterator_category = std::output_iterator_tag;
+    using iterator_category = std::random_access_iterator_tag;
 
    private:
     const Vector *home_;
@@ -101,9 +109,17 @@ class Vector {
       return *this;
     }
     auto operator-= (const int &n) -> const_iterator & { return (*this += -n); }
-    auto operator++ (int) const -> const_iterator { return operator+(1); }
+    auto operator++ (int) -> const_iterator {
+      auto res = *this;
+      ++*this;
+      return res;
+    }
     auto operator++ () -> const_iterator & { return (*this += 1); }
-    auto operator-- (int) const -> const_iterator { return operator+(-1); }
+    auto operator-- (int) -> const_iterator {
+      auto res = *this;
+      --*this;
+      return res;
+    }
     auto operator-- () -> const_iterator & { return (*this -= 1); }
     auto operator* () const -> const T & { return *ptr_; }
     auto operator== (const iterator &rhs) const -> bool { return ptr_ == rhs.ptr_; }

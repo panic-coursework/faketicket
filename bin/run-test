@@ -16,5 +16,9 @@ if [ "$1" = "b5824a-bptree_test" ]; then
   valgrind $VG_FLAGS "$EXE" < lib/file/bptree_test.in | diff -w - lib/file/bptree_test.ans || exit 1
   exit 0
 fi
+if [ "$1" = "2ec81a-algorithm_test" ]; then
+  valgrind $VG_FLAGS "$EXE" < lib/algorithm_test.in | diff -w - lib/algorithm_test.ans || exit 1
+  exit 0
+fi
 
 valgrind $VG_FLAGS "$EXE" || exit 1

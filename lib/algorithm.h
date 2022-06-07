@@ -35,13 +35,30 @@ TICKET_ALGORIGHM_DEFINE_BOUND_FUNC(upperBound, geq)
 TICKET_ALGORIGHM_DEFINE_BOUND_FUNC(lowerBound, gt)
 #undef TICKET_ALGORIGHM_DEFINE_BOUND_FUNC
 
+/// sorts the elements between first and last.
 template <typename Iterator, class Compare = Less<>>
 auto sort (Iterator first, Iterator last, Compare cmp = {})
   -> void {
-  // TODO
-  std::sort(first, last, [&cmp] (const auto &a, const auto &b) {
-    return cmp.lt(a, b);
-  });
+  auto distance = std::distance(first, last);
+  if (distance <= 1) return;
+  auto mid = first;
+  std::advance(mid, distance / 2);
+  sort(first, mid, cmp);
+  sort(mid, last, cmp);
+  std::remove_cvref_t<decltype(*first)> tmp[distance + 1];
+  int s = 0;
+  auto p = first;
+  auto q = mid;
+  while (s < distance) {
+    if (p != mid && (q == last || cmp.lt(*p, *q))) {
+      tmp[s++] = *p++;
+    } else {
+      tmp[s++] = *q++;
+    }
+  }
+  int i = 0;
+  while (first != last) *first++ = tmp[i++];
+  TICKET_ASSERT(i == distance);
 }
 
 } // namespace ticket
