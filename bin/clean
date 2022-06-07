@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# build artifacts
+make clean >/dev/null 2>/dev/null || true
+rm -f *_test-* code
+rm -rf build
+
+# CMake related files
+rm -rf CMakeFiles Testing
+rm -f Makefile CMakeCache.txt CTestTestfile.cmake DartConfiguration.tcl cmake_install.cmake compile_commands.json
+
+# pandoc
+rm -rf docs/html docs/latex
+
+# data files
+rm -f file.o
+rm -f *.ix
+rm -f orders ride-seats rollback-log trains users
+
+# valgrind
+rm -f vgcore.*

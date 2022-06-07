@@ -10,13 +10,14 @@
 **/vgcore*
 **perf**
 
-build
-*_test
-code
+/build
+/*_test
+/*_test-*
+/code
 
-docs/html
-docs/xml
-docs/latex
+/docs/html
+/docs/xml
+/docs/latex
 
 *.ix
 orders
