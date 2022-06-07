@@ -149,4 +149,10 @@ auto Instant::operator< (const Instant &rhs) const -> bool {
   return minutes_ < rhs.minutes_;
 }
 
+auto formatDateTime (Date date, Instant instant)
+  -> std::string {
+  return std::string(date + instant.daysOverflow()) + " " +
+    std::string(instant);
+}
+
 } // namespace ticket

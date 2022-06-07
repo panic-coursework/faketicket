@@ -103,6 +103,9 @@ class Instant {
   int minutes_ = 0;
 };
 
+auto formatDateTime (Date date, Instant instant)
+  -> std::string;
+
 } // namespace ticket
 
 #endif // TICKET_LIB_DATETIME_H_

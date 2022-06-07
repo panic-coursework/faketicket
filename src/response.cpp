@@ -8,7 +8,11 @@ auto cout (const Unit & /* unused */) -> void {
   std::cout << "0\n";
 }
 auto cout (const User &user) -> void {
-  // TODO
+  std::cout
+    << user.username.str() << ' '
+    << user.name.str() << ' '
+    << user.email.str() << ' '
+    << user.privilege << '\n';
 }
 auto cout (const Train &train) -> void {
   // TODO
@@ -23,8 +27,21 @@ auto cout (const BuyTicketResponse &ticket) -> void {
     std::cout << "queue\n";
   }
 }
-auto cout (const Vector<Order> &order) -> void {
-  // TODO
+auto cout (const Vector<Order> &orders) -> void {
+  std::cout << orders.size() << '\n';
+  for (const auto &order : orders) {
+    const auto &cache = order.cache;
+    auto date = order.ride.date;
+    std::cout
+      << '[' << Order::statusString(order.status) << "] "
+      << cache.trainId.str() << ' '
+      << cache.from.str() << ' '
+      << formatDateTime(date, cache.timeDeparture) << " -> "
+      << cache.to.str() << ' '
+      << formatDateTime(date, cache.timeArrival) << ' '
+      << order.price << ' '
+      << order.seats << '\n';
+  }
 }
 
 #ifdef BUILD_NODEJS
@@ -33,10 +50,15 @@ auto cout (const Vector<Order> &order) -> void {
 #define JS_STR(x) Napi::String::New(env, x)
 #define JS_NUM(x) Napi::Number::New(env, x)
 #define JS_ARR(length) Napi::Array::New(env, length)
+#define JS_DATE(date, instant) \
+  Napi::Value(env.Global()["Date"]).As<Napi::Function>() \
+  .New({ JS_STR(formatDateTime(date, instant)) });
 
 auto toJsObject (Napi::Env env, const Unit & /* unused */)
   -> Napi::Object {
-  return Napi::Object::New(env);
+  auto obj = JS_OBJ();
+  obj["success"] = Napi::Boolean::New(env, true);
+  return obj;
 }
 auto toJsObject (Napi::Env env, const User &user)
   -> Napi::Object {
@@ -74,16 +96,26 @@ auto toJsObject (Napi::Env env, const Vector<Order> &orders)
   -> Napi::Object {
   auto arr = JS_ARR(0);
   for (int i = 0; i < orders.size(); ++i) {
-    auto jsOrder = arr[i] = JS_OBJ();
+    auto jsOrder = JS_OBJ();
+    arr[i] = jsOrder;
     const auto &order = orders[i];
-    // TODO
+    const auto &cache = order.cache;
+    auto date = order.ride.date;
+    jsOrder["id"] = JS_NUM(order.id());
+    jsOrder["trainId"] = JS_STR(cache.trainId.str());
+    jsOrder["from"] = JS_DATE(date, cache.timeDeparture);
+    jsOrder["to"] = JS_DATE(date, cache.timeArrival);
+    jsOrder["price"] = JS_NUM(order.price);
+    jsOrder["seats"] = JS_NUM(order.seats);
   }
+  return arr;
 }
 
 #undef JS_OBJ
 #undef JS_STR
 #undef JS_NUM
 #undef JS_ARR
+#undef JS_DATE
 
 #endif // BUILD_NODEJS
 
