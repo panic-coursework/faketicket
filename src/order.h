@@ -9,9 +9,24 @@
 
 namespace ticket {
 
+struct OrderCache {
+  Train::Id trainId;
+  Station::Id from, to;
+  Instant timeDeparture, timeArrival;
+};
+
 struct OrderBase {
   using Id = int;
   enum Status { kSuccess, kPending, kRefunded };
+  /// gets the string representation of the status.
+  inline static auto statusString (Status status)
+    -> const char * {
+    switch (status) {
+      case kSuccess: return "success";
+      case kPending: return "pending";
+      case kRefunded: return "refunded";
+    }
+  }
 
   User::Id user;
   Ride ride;
@@ -19,6 +34,7 @@ struct OrderBase {
   int seats;
   int price;
   Status status;
+  OrderCache cache;
 
   /// gets the corresponding train object.
   auto getTrain () -> Train;

@@ -22,6 +22,7 @@ auto main () -> int {
     ticket::setTimestamp(timestamp);
     char c2 = std::cin.get();
     TICKET_ASSERT(c2 == ']');
+    std::cout << '[' << timestamp << "] ";
 
     // main command
     std::string input;

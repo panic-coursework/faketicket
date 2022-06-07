@@ -46,6 +46,13 @@ auto command::dispatch (const command::BuyTicket &cmd)
   order.price = train->totalPrice(*ixFrom, *ixTo);
   order.seats = cmd.seats;
 
+  auto &cache = order.cache;
+  cache.trainId = train->trainId;
+  cache.timeArrival = train->edges[*ixTo - 1].arrival;
+  cache.timeDeparture = train->edges[*ixFrom].departure;
+  cache.from = train->stops[*ixFrom].name;
+  cache.to = train->stops[*ixTo].name;
+
   if (seats->ticketsAvailable(ixFrom, ixTo) < cmd.seats) {
     if (!cmd.queue) return Exception("not enough tickets");
     order.status = Order::kPending;
@@ -158,6 +165,7 @@ auto rollback::dispatch (const rollback::BuyTicket &log)
   order.destroy();
   return unit;
 }
+
 auto rollback::dispatch (const rollback::RefundTicket &log)
   -> Result<Unit, Exception> {
   // we only need to undo the refund operation. Fulfilled
@@ -177,6 +185,7 @@ auto rollback::dispatch (const rollback::RefundTicket &log)
   }
   return unit;
 }
+
 auto rollback::dispatch (const rollback::FulfillOrder &log)
   -> Result<Unit, Exception> {
   auto order = Order::get(log.id);

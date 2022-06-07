@@ -24,60 +24,6 @@ auto UserBase::isLoggedIn (const std::string &username)
   return usersLoggedIn.contains(username);
 }
 
-inline auto isValidUsername (const std::string &username)
-  -> bool {
-  int length = username.length();
-  if (length == 0 || length > User::Id::kMaxLength) {
-    return false;
-  }
-  if (!isalpha(username[0])) return false;
-  for (auto ch : username) {
-    if (!isalnum(ch) && ch != '_') return false;
-  }
-  return true;
-}
-inline auto isValidPassword (const std::string &password)
-  -> bool {
-  int length = password.length();
-  if (length == 0 || length > User::Password::kMaxLength) {
-    return false;
-  }
-  for (auto ch : password) {
-    if (!isVisibleChar(ch)) return false;
-  }
-  return true;
-}
-static constexpr int kNameMinLength = 2 * 3;
-inline auto isValidName (const std::string &name) -> bool {
-  int length = name.length();
-  bool invalidLength = length < kNameMinLength
-    || length > User::Name::kMaxLength;
-  if (invalidLength) {
-    return false;
-  }
-  return true;
-}
-inline auto isValidEmail (const std::string &email)
-  -> bool {
-  int length = email.length();
-  if (length == 0 || length > User::Email::kMaxLength) {
-    return false;
-  }
-  return true;
-}
-static constexpr int kMaxPrivilege = 10;
-inline auto isValidPrivilege (int privilege) -> bool {
-  return privilege >= 0 && privilege <= kMaxPrivilege;
-}
-inline auto isValidAddUser (const command::AddUser &cmd)
-  -> bool {
-  return
-    isValidUsername(cmd.username) &&
-    isValidPassword(cmd.password) &&
-    isValidName(cmd.name) &&
-    isValidEmail(cmd.email);
-}
-
 inline auto makeUser (const command::AddUser &cmd) -> User {
   User user;
   user.username = cmd.username;
@@ -89,10 +35,6 @@ inline auto makeUser (const command::AddUser &cmd) -> User {
 static constexpr int kDefaultPrivilege = 10;
 auto command::dispatch (const command::AddUser &cmd)
   -> Result<Response, Exception> {
-  if (!isValidAddUser(cmd)) {
-    return Exception("invalid command");
-  }
-
   bool isFirstUser = User::ixUsername.empty();
   if (isFirstUser) {
     auto user = makeUser(cmd);
@@ -117,6 +59,7 @@ auto command::dispatch (const command::AddUser &cmd)
 
   return unit;
 }
+
 auto command::dispatch (const command::Login &cmd)
   -> Result<Response, Exception> {
   if (User::isLoggedIn(cmd.username)) {
@@ -131,6 +74,7 @@ auto command::dispatch (const command::Login &cmd)
   usersLoggedIn[cmd.username] = unit;
   return unit;
 }
+
 auto command::dispatch (const command::Logout &cmd)
   -> Result<Response, Exception> {
   if (!User::isLoggedIn(cmd.username)) {
@@ -200,6 +144,7 @@ auto rollback::dispatch (const rollback::AddUser &log)
   user.destroy();
   return unit;
 }
+
 auto rollback::dispatch (const rollback::ModifyProfile &log)
   -> Result<Unit, Exception> {
   auto user = User::get(log.id);
