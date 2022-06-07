@@ -6,6 +6,7 @@
 #include <fstream>
 
 #include "hashmap.h"
+#include "lru-cache.h"
 #include "utility.h"
 #include "exception.h"
 
@@ -46,22 +47,19 @@ class File {
 
   /// read n bytes at index into buf.
   auto get (void *buf, size_t index, size_t n) -> void {
-    if (index != -1 && cache_.count(index) > 0) {
-      memcpy(buf, cache_[index], n);
+    if (auto cached = cache_.get(index)) {
+      memcpy(buf, *cached, n);
       return;
     }
     file_.seekg(offset_(index));
     file_.read((char *) buf, n);
     TICKET_ASSERT(file_.good());
-    if (index != -1) putCache_(buf, index, n);
+    // TODO(perf): memcmp overhead
+    cache_.upsert(index, buf, n);
   }
   /// write n bytes at index from buf.
   auto set (const void *buf, size_t index, size_t n) -> void {
-    if (index != -1) {
-      // dirty check
-      if (cache_.count(index) > 0 && memcmp(buf, cache_[index], n) == 0) return;
-      putCache_(buf, index, n);
-    }
+    if (!cache_.upsert(index, buf, n)) return;
     file_.seekp(offset_(index));
     file_.write((const char *) buf, n);
     TICKET_ASSERT(file_.good());
@@ -86,8 +84,7 @@ class File {
     set(&meta, index, sizeof(meta));
     Metadata newMeta(index, true);
     set(&newMeta, -1, sizeof(newMeta));
-    if (cache_.count(index) > 0) delete[] cache_[index];
-    cache_.erase(cache_.find(index));
+    cache_.remove(index);
   }
 
   /// gets user-provided metadata.
@@ -103,7 +100,6 @@ class File {
 
   /// clears the cache.
   auto clearCache () -> void {
-    for (const auto &[ _, ptr ] : cache_) delete[] ptr;
     cache_.clear();
   }
 
@@ -163,13 +159,8 @@ class File {
     return (index + 1) * szChunk;
   }
   std::fstream file_;
-  HashMap<size_t, char *> cache_;
-  auto putCache_ (const void *buf, size_t index, size_t n) -> void {
-    char *cache = new char[n];
-    memcpy(cache, buf, n);
-    if (cache_.count(index) > 0) delete[] cache_[index];
-    cache_[index] = cache;
-  }
+  constexpr static int kSzCache_ = 1024;
+  LruCache<size_t, kSzCache_> cache_;
 };
 
 /**
