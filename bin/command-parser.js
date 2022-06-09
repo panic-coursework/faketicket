@@ -20,6 +20,7 @@ const type = (arg, std = stdtype(arg.type)) => arg.array
     : std
 const getValue = (type, varname) => {
   if (type === 'int') return `atoi(${varname})`
+  if (type === 'bool') return `${varname}[0] == 't'`
   if (type === 'char') return `*${varname}`
   if (type === 'SortType') return `${varname}[0] == 't' ? kTime : kCost`
   if (type === 'Duration') return `Duration(atoi(${varname}))`
