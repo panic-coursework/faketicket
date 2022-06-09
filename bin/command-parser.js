@@ -76,7 +76,7 @@ ${Object.entries(args).map(testArg).join(' ').indent(2)} {
 } else
 `.trim()
 
-const dispatchOverload = name => `auto dispatch (const ${name} &cmd) -> Result<Response, Exception>;`
+const runOverload = name => `auto run (const ${name} &cmd) -> Result<Response, Exception>;`
 
 const defineGuard = 'TICKET_PARSER_H_'
 const ns = `ticket::command`
@@ -125,7 +125,7 @@ auto parse (const Vector<std::string_view> &argv)
  * The implementations are in the corresponding source
  * files, not in ${filenameCpp}.
  */
-${Object.keys(commands).map(className).map(dispatchOverload).join('\n')}
+${Object.keys(commands).map(className).map(runOverload).join('\n')}
 
 } // namespace ${ns}
 

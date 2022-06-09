@@ -10,7 +10,7 @@
 
 template <typename T>
 auto execute (Napi::Env env, const T &cmd) -> Napi::Value {
-  auto res = ticket::command::dispatch(cmd);
+  auto res = ticket::command::run(cmd);
   if (auto err = res.error()) {
     auto error = Napi::Error::New(env, err->what());
     error.ThrowAsJavaScriptException();

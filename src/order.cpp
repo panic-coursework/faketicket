@@ -15,7 +15,7 @@ file::Index<Ride, Order> Order::pendingOrders {
   "orders-pending.ride.ix"
 };
 
-auto command::dispatch (const command::BuyTicket &cmd)
+auto command::run (const command::BuyTicket &cmd)
   -> Result<Response, Exception> {
   if (!User::isLoggedIn(cmd.currentUser)) {
     return Exception("not logged in");
@@ -75,7 +75,7 @@ auto command::dispatch (const command::BuyTicket &cmd)
   return BuyTicketResponse(BuyTicketSuccess{order.price});
 }
 
-auto command::dispatch (const command::QueryOrder &cmd)
+auto command::run (const command::QueryOrder &cmd)
   -> Result<Response, Exception> {
   if (!User::isLoggedIn(cmd.currentUser)) {
     return Exception("not logged in");
@@ -92,7 +92,7 @@ auto command::dispatch (const command::QueryOrder &cmd)
   });
 }
 
-auto command::dispatch (const command::RefundTicket &cmd)
+auto command::run (const command::RefundTicket &cmd)
   -> Result<Response, Exception> {
   if (!User::isLoggedIn(cmd.currentUser)) {
     return Exception("not logged in");
@@ -150,7 +150,7 @@ auto command::dispatch (const command::RefundTicket &cmd)
   return unit;
 }
 
-auto rollback::dispatch (const rollback::BuyTicket &log)
+auto rollback::run (const rollback::BuyTicket &log)
   -> Result<Unit, Exception> {
   auto order = Order::get(log.id);
   if (order.status == Order::kPending) {
@@ -161,7 +161,7 @@ auto rollback::dispatch (const rollback::BuyTicket &log)
   return unit;
 }
 
-auto rollback::dispatch (const rollback::RefundTicket &log)
+auto rollback::run (const rollback::RefundTicket &log)
   -> Result<Unit, Exception> {
   // we only need to undo the refund operation. Fulfilled
   // orders will be undone in its own function.
@@ -181,7 +181,7 @@ auto rollback::dispatch (const rollback::RefundTicket &log)
   return unit;
 }
 
-auto rollback::dispatch (const rollback::FulfillOrder &log)
+auto rollback::run (const rollback::FulfillOrder &log)
   -> Result<Unit, Exception> {
   auto order = Order::get(log.id);
   TICKET_ASSERT(order.status == Order::kSuccess);

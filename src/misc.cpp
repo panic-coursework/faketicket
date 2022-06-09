@@ -10,7 +10,7 @@
 
 namespace ticket {
 
-auto command::dispatch (const command::Clean & /* unused */)
+auto command::run (const command::Clean & /* unused */)
   -> Result<Response, Exception> {
   Order::truncate();
   Order::ixUserId.truncate();
@@ -25,7 +25,7 @@ auto command::dispatch (const command::Clean & /* unused */)
   User::ixUsername.truncate();
   return unit;
 }
-auto command::dispatch (const command::Exit & /* unused */)
+auto command::run (const command::Exit & /* unused */)
   -> Result<Response, Exception> {
   std::cout << "bye\n";
   exit(0);

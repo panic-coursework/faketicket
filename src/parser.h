@@ -160,23 +160,23 @@ auto parse (const Vector<std::string_view> &argv)
  * The implementations are in the corresponding source
  * files, not in parser.cpp.
  */
-auto dispatch (const AddUser &cmd) -> Result<Response, Exception>;
-auto dispatch (const Login &cmd) -> Result<Response, Exception>;
-auto dispatch (const Logout &cmd) -> Result<Response, Exception>;
-auto dispatch (const QueryProfile &cmd) -> Result<Response, Exception>;
-auto dispatch (const ModifyProfile &cmd) -> Result<Response, Exception>;
-auto dispatch (const AddTrain &cmd) -> Result<Response, Exception>;
-auto dispatch (const DeleteTrain &cmd) -> Result<Response, Exception>;
-auto dispatch (const ReleaseTrain &cmd) -> Result<Response, Exception>;
-auto dispatch (const QueryTrain &cmd) -> Result<Response, Exception>;
-auto dispatch (const QueryTicket &cmd) -> Result<Response, Exception>;
-auto dispatch (const QueryTransfer &cmd) -> Result<Response, Exception>;
-auto dispatch (const BuyTicket &cmd) -> Result<Response, Exception>;
-auto dispatch (const QueryOrder &cmd) -> Result<Response, Exception>;
-auto dispatch (const RefundTicket &cmd) -> Result<Response, Exception>;
-auto dispatch (const Rollback &cmd) -> Result<Response, Exception>;
-auto dispatch (const Clean &cmd) -> Result<Response, Exception>;
-auto dispatch (const Exit &cmd) -> Result<Response, Exception>;
+auto run (const AddUser &cmd) -> Result<Response, Exception>;
+auto run (const Login &cmd) -> Result<Response, Exception>;
+auto run (const Logout &cmd) -> Result<Response, Exception>;
+auto run (const QueryProfile &cmd) -> Result<Response, Exception>;
+auto run (const ModifyProfile &cmd) -> Result<Response, Exception>;
+auto run (const AddTrain &cmd) -> Result<Response, Exception>;
+auto run (const DeleteTrain &cmd) -> Result<Response, Exception>;
+auto run (const ReleaseTrain &cmd) -> Result<Response, Exception>;
+auto run (const QueryTrain &cmd) -> Result<Response, Exception>;
+auto run (const QueryTicket &cmd) -> Result<Response, Exception>;
+auto run (const QueryTransfer &cmd) -> Result<Response, Exception>;
+auto run (const BuyTicket &cmd) -> Result<Response, Exception>;
+auto run (const QueryOrder &cmd) -> Result<Response, Exception>;
+auto run (const RefundTicket &cmd) -> Result<Response, Exception>;
+auto run (const Rollback &cmd) -> Result<Response, Exception>;
+auto run (const Clean &cmd) -> Result<Response, Exception>;
+auto run (const Exit &cmd) -> Result<Response, Exception>;
 
 } // namespace ticket::command
 
