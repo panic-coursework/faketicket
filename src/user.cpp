@@ -94,13 +94,13 @@ auto command::run (const command::AddUser &cmd)
 
 auto command::run (const command::Login &cmd)
   -> Result<Response, Exception> {
-  if (User::isLoggedIn(cmd.username)) {
-    return Exception("already logged in");
-  }
-
   auto user = User::ixUsername.findOne(cmd.username);
   if (!user || user->password.str() != cmd.password) {
     return Exception("invalid credentials");
+  }
+
+  if (User::isLoggedIn(cmd.username)) {
+    return Exception("already logged in");
   }
 
   usersLoggedIn[cmd.username] = user->privilege;
@@ -118,7 +118,9 @@ auto command::run (const command::Logout &cmd)
 
 auto command::run (const command::QueryProfile &cmd)
   -> Result<Response, Exception> {
-  return checkUser(cmd);
+  auto res = checkUser(cmd);
+  if (auto err = res.error()) return *err;
+  return res.result();
 }
 auto command::run (const command::ModifyProfile &cmd)
   -> Result<Response, Exception> {
