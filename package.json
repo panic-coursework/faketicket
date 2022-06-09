@@ -1,8 +1,8 @@
 {
-  "name": "faketicket",
+  "name": "faketicket-native",
   "version": "0.0.0-dev",
   "description": "SJTU CS1951 lab assignment",
-  "main": "index.js",
+  "main": "build/Release/ticket.node",
   "repository": "git+https://github.com/panic-coursework/faketicket.git",
   "author": "Alan Liang <alan@symb.olic.link>",
   "license": "GPL-3.0",
