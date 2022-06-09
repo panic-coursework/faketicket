@@ -25,6 +25,12 @@ struct UserBase {
   /// checks if the user is logged in.
   static auto isLoggedIn (const std::string &username)
     -> bool;
+  /// returns the privilege of a user. The user has to be
+  /// logged in.
+  static auto privilegeOf (const std::string &username)
+    -> int;
+  /// logs out all the users.
+  static auto clearSessions () -> void;
 
   static constexpr const char *filename = "users";
 };
