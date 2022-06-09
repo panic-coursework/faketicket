@@ -28,19 +28,22 @@ auto command::run (const command::BuyTicket &cmd)
   if (cmd.seats > train->seats) {
     return Exception("too many seats for this train");
   }
+
   auto ixFrom = train->indexOfStop(cmd.from);
   auto ixTo = train->indexOfStop(cmd.to);
   if (!ixFrom || !ixTo) return Exception("no such station");
-  if (*ixFrom >= *ixTo) return Exception("no reverse orders");
+  if (*ixFrom >= *ixTo) {
+    return Exception("the train runs in the opposite way");
+  }
 
-  auto seats = train->getRide(cmd.date, *ixFrom);
-  if (!seats) {
+  auto seatsInfo = train->getRide(cmd.date, *ixFrom);
+  if (!seatsInfo) {
     return Exception("no such train on this date");
   }
 
   Order order;
   order.user = cmd.currentUser;
-  order.ride = seats->ride;
+  order.ride = seatsInfo->ride;
   order.ixFrom = *ixFrom;
   order.ixTo = *ixTo;
   order.price = train->totalPrice(*ixFrom, *ixTo);
@@ -53,13 +56,13 @@ auto command::run (const command::BuyTicket &cmd)
   cache.from = cmd.from;
   cache.to = cmd.to;
 
-  if (seats->ticketsAvailable(*ixFrom, *ixTo) < cmd.seats) {
+  if (seatsInfo->ticketsAvailable(*ixFrom, *ixTo) < cmd.seats) {
     if (!cmd.queue) return Exception("not enough tickets");
     order.status = Order::kPending;
   } else {
     order.status = Order::kSuccess;
-    seats->rangeAdd(-cmd.seats, *ixFrom, *ixTo);
-    seats->update();
+    seatsInfo->rangeAdd(-cmd.seats, *ixFrom, *ixTo);
+    seatsInfo->update();
   }
 
   order.save();
@@ -67,7 +70,7 @@ auto command::run (const command::BuyTicket &cmd)
   if (order.status == Order::kPending) {
     Order::pendingOrders.insert(order);
   }
-  rollback::log((rollback::BuyTicket){(int) order.id()});
+  rollback::log(rollback::BuyTicket{(int) order.id()});
 
   if (order.status == Order::kPending) {
     return BuyTicketResponse(BuyTicketEnqueued());
@@ -125,18 +128,17 @@ auto command::run (const command::RefundTicket &cmd)
 
   auto seats = RideSeats::ixRide.findOne(order.ride);
   seats->rangeAdd(order.seats, order.ixFrom, order.ixTo);
-  seats->update();
 
   // ok, let's check for other pending orders.
   auto pending = Order::pendingOrders.findMany(order.ride);
-  // TODO(perf): speed up the for loop
+  // TODO(perf): speed up the for loop (RMQ?)
   for (auto &target : pending) {
     auto max =
       seats->ticketsAvailable(target.ixFrom, target.ixTo);
     if (max < target.seats) continue;
 
     seats->rangeAdd(
-      target.seats,
+      -target.seats,
       target.ixFrom,
       target.ixTo
     );
@@ -145,8 +147,10 @@ auto command::run (const command::RefundTicket &cmd)
     target.update();
     Order::pendingOrders.remove(target);
 
-    rollback::log((rollback::FulfillOrder){target.id()});
+    rollback::log(rollback::FulfillOrder{target.id()});
   }
+  seats->update();
+
   return unit;
 }
 

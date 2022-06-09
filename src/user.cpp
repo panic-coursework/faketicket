@@ -68,7 +68,7 @@ auto command::run (const command::AddUser &cmd)
     user.privilege = kDefaultPrivilege;
     user.save();
     User::ixUsername.insert(user);
-    rollback::log((rollback::AddUser){user.id()});
+    rollback::log(rollback::AddUser{user.id()});
     return unit;
   }
 
@@ -87,7 +87,7 @@ auto command::run (const command::AddUser &cmd)
   user.privilege = cmd.privilege;
   user.save();
   User::ixUsername.insert(user);
-  rollback::log((rollback::AddUser){user.id()});
+  rollback::log(rollback::AddUser{user.id()});
 
   return unit;
 }
