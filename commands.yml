@@ -1,10 +1,10 @@
 add_user:
-  -c: string currentUser?
+  -c: string currentUser
   -u: string username
   -p: string password
   -n: string name
   -m: string email
-  -g: int privilege?
+  -g: int privilege
 
 login:
   -u: string username

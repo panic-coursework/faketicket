@@ -17,12 +17,12 @@ namespace ticket::command {
 enum SortType { kTime, kCost };
 
 struct AddUser {
-  Optional<std::string> currentUser;
+  std::string currentUser;
   std::string username;
   std::string password;
   std::string name;
   std::string email;
-  Optional<int> privilege;
+  int privilege;
 };
 
 struct Login {

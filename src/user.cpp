@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "exception.h"
 #include "hashmap.h"
 #include "parser.h"
 #include "rollback.h"
@@ -12,17 +13,42 @@ file::Index<User::Id, User> User::ixUsername
   {&User::username, "users.username.ix"};
 
 /// a set of users that are logged in.
-HashMap<std::string, Unit> usersLoggedIn;
+HashMap<std::string, User::Privilege> usersLoggedIn;
 
 auto UserBase::has (const char *username) -> bool {
   return User::ixUsername.findOneId(username);
 }
-
 auto UserBase::isLoggedIn (const std::string &username)
   -> bool {
   return usersLoggedIn.contains(username);
 }
+auto UserBase::privilegeOf (const std::string &username)
+  -> User::Privilege {
+  return usersLoggedIn.at(username);
+}
+auto UserBase::clearSessions() -> void {
+  usersLoggedIn.clear();
+}
 
+template <typename Cmd>
+inline auto checkUser (const Cmd &cmd)
+  -> Result<User, Exception> {
+  if (!User::isLoggedIn(cmd.currentUser)) {
+    return Exception("not logged in");
+  }
+
+  auto target = User::ixUsername.findOne(cmd.username);
+  if (!target) return Exception("unauthorized");
+
+  auto opPrivilege = User::privilegeOf(cmd.currentUser);
+  bool insufficientPrivileges =
+    opPrivilege <= target->privilege &&
+    cmd.currentUser != cmd.username;
+  if (insufficientPrivileges) {
+    return Exception("unauthorized");
+  }
+  return *target;
+}
 inline auto makeUser (const command::AddUser &cmd) -> User {
   User user;
   user.username = cmd.username;
@@ -31,7 +57,9 @@ inline auto makeUser (const command::AddUser &cmd) -> User {
   user.email = cmd.email;
   return user;
 }
-static constexpr int kDefaultPrivilege = 10;
+
+static constexpr User::Privilege kDefaultPrivilege = 10;
+
 auto command::run (const command::AddUser &cmd)
   -> Result<Response, Exception> {
   bool isFirstUser = User::ixUsername.empty();
@@ -44,14 +72,19 @@ auto command::run (const command::AddUser &cmd)
     return unit;
   }
 
-  if (!cmd.currentUser || !cmd.privilege) {
-    return Exception("insufficient privilege");
-  }
-  if (!User::isLoggedIn(*cmd.currentUser)) {
+  if (!User::isLoggedIn(cmd.currentUser)) {
     return Exception("not logged in");
+  }
+  auto privilegeCurr = User::privilegeOf(cmd.currentUser);
+  if (privilegeCurr >= cmd.privilege) {
+    return Exception("unauthorized");
+  }
+  if (User::has(cmd.username.data())) {
+    return Exception("duplicate username");
   }
 
   auto user = makeUser(cmd);
+  user.privilege = cmd.privilege;
   user.save();
   User::ixUsername.insert(user);
   rollback::log((rollback::AddUser){user.id()});
@@ -70,7 +103,7 @@ auto command::run (const command::Login &cmd)
     return Exception("invalid credentials");
   }
 
-  usersLoggedIn[cmd.username] = unit;
+  usersLoggedIn[cmd.username] = user->privilege;
   return unit;
 }
 
@@ -83,38 +116,26 @@ auto command::run (const command::Logout &cmd)
   return unit;
 }
 
-template <typename Cmd>
-inline auto checkUser (const Cmd &cmd)
-  -> Result<Pair<User, User>, Exception> {
-  if (!User::isLoggedIn(cmd.currentUser)) {
-    return Exception("not logged in");
-  }
-  auto op = User::ixUsername.findOne(cmd.currentUser);
-  auto target = User::ixUsername.findOne(cmd.username);
-  bool insufficientPrivileges =
-    op->privilege <= target->privilege &&
-    op->id() != target->id();
-  if (!target || insufficientPrivileges) {
-    return Exception("unauthorized");
-  }
-  return Pair(*target, *op);
-}
 auto command::run (const command::QueryProfile &cmd)
   -> Result<Response, Exception> {
-  auto res = checkUser(cmd);
-  if (auto err = res.error()) return *err;
-  auto [ target, _ ] = res.result();
-  return target;
+  return checkUser(cmd);
 }
 auto command::run (const command::ModifyProfile &cmd)
   -> Result<Response, Exception> {
   auto res = checkUser(cmd);
   if (auto err = res.error()) return *err;
-  auto [ target, op ] = res.result();
+  auto &target = res.result();
 
-  bool sufficientPrivileges = *cmd.privilege < op.privilege;
-  if (!sufficientPrivileges) {
-    return Exception("insufficient privileges");
+  if (cmd.privilege) {
+    bool authorized =
+      *cmd.privilege < User::privilegeOf(cmd.currentUser);
+    if (!authorized) return Exception("unauthorized");
+
+    // update privilege cache if needed
+    auto it = usersLoggedIn.find(cmd.username);
+    if (it != usersLoggedIn.end()) {
+      it->second = *cmd.privilege;
+    }
   }
 
   rollback::ModifyProfile log;
@@ -147,6 +168,9 @@ auto rollback::run (const rollback::AddUser &log)
 auto rollback::run (const rollback::ModifyProfile &log)
   -> Result<Unit, Exception> {
   auto user = User::get(log.id);
+  // no need to update privilege cache, since no one is
+  // logged in at this point.
+
 #define TICKET_CHECK_FIELD(name) \
   if (log.name) user.name = *log.name;
   TICKET_CHECK_FIELD(name)
