@@ -34,7 +34,7 @@ auto main () -> int {
     }
 
     cmd.result().visit([] (const auto &args) {
-      auto res = ticket::command::dispatch(args);
+      auto res = ticket::command::run(args);
       if (res.error()) {
         std::cout << "-1\n";
       } else {

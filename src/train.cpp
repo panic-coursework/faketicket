@@ -65,40 +65,40 @@ auto RideSeatsBase::rangeAdd (int dx, int ixFrom, int ixTo)
   }
 }
 
-auto command::dispatch (const command::AddTrain &cmd)
+auto command::run (const command::AddTrain &cmd)
   -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::DeleteTrain &cmd)
+auto command::run (const command::DeleteTrain &cmd)
   -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::ReleaseTrain &cmd)
+auto command::run (const command::ReleaseTrain &cmd)
   -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::QueryTrain &cmd)
+auto command::run (const command::QueryTrain &cmd)
   -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::QueryTicket &cmd)
+auto command::run (const command::QueryTicket &cmd)
   -> Result<Response, Exception> {
   // TODO
 }
-auto command::dispatch (const command::QueryTransfer &cmd)
+auto command::run (const command::QueryTransfer &cmd)
   -> Result<Response, Exception> {
   // TODO
 }
 
-auto rollback::dispatch (const rollback::AddTrain &log)
+auto rollback::run (const rollback::AddTrain &log)
   -> Result<Unit, Exception> {
   // TODO
 }
-auto rollback::dispatch (const rollback::DeleteTrain &log)
+auto rollback::run (const rollback::DeleteTrain &log)
   -> Result<Unit, Exception> {
   // TODO
 }
-auto rollback::dispatch (const rollback::ReleaseTrain &log)
+auto rollback::run (const rollback::ReleaseTrain &log)
   -> Result<Unit, Exception> {
   // TODO
 }

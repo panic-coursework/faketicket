@@ -83,14 +83,14 @@ auto log (const LogEntry::Content &content) -> void;
  * The implementations are in the corresponding source
  * files, not in rollback.cpp.
  */
-auto dispatch (const AddUser &log) -> Result<Unit, Exception>;
-auto dispatch (const ModifyProfile &log) -> Result<Unit, Exception>;
-auto dispatch (const AddTrain &log) -> Result<Unit, Exception>;
-auto dispatch (const DeleteTrain &log) -> Result<Unit, Exception>;
-auto dispatch (const ReleaseTrain &log) -> Result<Unit, Exception>;
-auto dispatch (const BuyTicket &log) -> Result<Unit, Exception>;
-auto dispatch (const RefundTicket &log) -> Result<Unit, Exception>;
-auto dispatch (const FulfillOrder &log) -> Result<Unit, Exception>;
+auto run (const AddUser &log) -> Result<Unit, Exception>;
+auto run (const ModifyProfile &log) -> Result<Unit, Exception>;
+auto run (const AddTrain &log) -> Result<Unit, Exception>;
+auto run (const DeleteTrain &log) -> Result<Unit, Exception>;
+auto run (const ReleaseTrain &log) -> Result<Unit, Exception>;
+auto run (const BuyTicket &log) -> Result<Unit, Exception>;
+auto run (const RefundTicket &log) -> Result<Unit, Exception>;
+auto run (const FulfillOrder &log) -> Result<Unit, Exception>;
 
 } // namespace ticket::rollback
 

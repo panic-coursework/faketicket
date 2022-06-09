@@ -32,7 +32,7 @@ inline auto makeUser (const command::AddUser &cmd) -> User {
   return user;
 }
 static constexpr int kDefaultPrivilege = 10;
-auto command::dispatch (const command::AddUser &cmd)
+auto command::run (const command::AddUser &cmd)
   -> Result<Response, Exception> {
   bool isFirstUser = User::ixUsername.empty();
   if (isFirstUser) {
@@ -59,7 +59,7 @@ auto command::dispatch (const command::AddUser &cmd)
   return unit;
 }
 
-auto command::dispatch (const command::Login &cmd)
+auto command::run (const command::Login &cmd)
   -> Result<Response, Exception> {
   if (User::isLoggedIn(cmd.username)) {
     return Exception("already logged in");
@@ -74,7 +74,7 @@ auto command::dispatch (const command::Login &cmd)
   return unit;
 }
 
-auto command::dispatch (const command::Logout &cmd)
+auto command::run (const command::Logout &cmd)
   -> Result<Response, Exception> {
   if (!User::isLoggedIn(cmd.username)) {
     return Exception("not logged in");
@@ -99,14 +99,14 @@ inline auto checkUser (const Cmd &cmd)
   }
   return Pair(*target, *op);
 }
-auto command::dispatch (const command::QueryProfile &cmd)
+auto command::run (const command::QueryProfile &cmd)
   -> Result<Response, Exception> {
   auto res = checkUser(cmd);
   if (auto err = res.error()) return *err;
   auto [ target, _ ] = res.result();
   return target;
 }
-auto command::dispatch (const command::ModifyProfile &cmd)
+auto command::run (const command::ModifyProfile &cmd)
   -> Result<Response, Exception> {
   auto res = checkUser(cmd);
   if (auto err = res.error()) return *err;
@@ -136,7 +136,7 @@ auto command::dispatch (const command::ModifyProfile &cmd)
   return target;
 }
 
-auto rollback::dispatch (const rollback::AddUser &log)
+auto rollback::run (const rollback::AddUser &log)
   -> Result<Unit, Exception> {
   auto user = User::get(log.id);
   User::ixUsername.remove(user);
@@ -144,7 +144,7 @@ auto rollback::dispatch (const rollback::AddUser &log)
   return unit;
 }
 
-auto rollback::dispatch (const rollback::ModifyProfile &log)
+auto rollback::run (const rollback::ModifyProfile &log)
   -> Result<Unit, Exception> {
   auto user = User::get(log.id);
 #define TICKET_CHECK_FIELD(name) \
