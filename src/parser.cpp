@@ -229,7 +229,7 @@ auto parse (const Vector<std::string_view> &argv)
       } else if (arg == "-t") {
         res.to = argv[++i].data();
       } else if (arg == "-q") {
-        res.queue = argv[++i].data();
+        res.queue = argv[++i].data()[0] == 't';
       } else {
         return ParseException();
       }
