@@ -1,24 +1,54 @@
 #!/bin/bash
 
-EXE="./$1"
-VG_FLAGS="--leak-check=full --error-exitcode=1"
-
-if [ "$1" = "map_test-40a113" ]; then
-  "$EXE" | diff -w - lib/map_test.ans || exit 1
-  exit 0
-fi
-if [ "$1" = "hashmap_test-c23b0a" ]; then
-  "$EXE" | diff -w - lib/hashmap_test.ans || exit 1
-  exit 0
-fi
-if [ "$1" = "bptree_test-b5824a" ]; then
-  rm -f file.o
-  valgrind $VG_FLAGS "$EXE" < lib/file/bptree_test.in | diff -w - lib/file/bptree_test.ans || exit 1
-  exit 0
-fi
-if [ "$1" = "algorithm_test-2ec81a" ]; then
-  valgrind $VG_FLAGS "$EXE" < lib/algorithm_test.in | diff -w - lib/algorithm_test.ans || exit 1
-  exit 0
+if [ ! -e tests ]; then
+  bin/get-testdata || exit 1;
 fi
 
-valgrind $VG_FLAGS "$EXE" || exit 1
+if [ ! -e "tests/$1/$2" -o -z "$1" -o -z "$2" ]; then
+  echo "Usage: $0 <testpoint group> <testpoint name>"
+  exit 1
+fi
+
+list=$(jq ".$2[]" < "tests/$1/config.json")
+if [ -z "$list" ]; then
+  echo "invalid testpoint"
+  exit 1
+fi
+
+exename="code"
+bin/build || (echo "failed to build"; exit 1)
+if [ ! -e "$exename" ]; then
+  echo "failed to build"
+  exit 1
+fi
+
+function tmp () {
+  mktemp -p /tmp ticket.XXXXXXXXXX
+}
+
+testdir="$(mktemp -d -p /tmp ticket.XXXXXXXXXX)"
+cp "$exename" "$testdir/"
+exe="$testdir/$exename"
+cwd="$(pwd)"
+basedir="$cwd/tests/$1/$2"
+
+cd "$testdir"
+
+for i in $list; do
+  outfile="$(tmp)"
+  echo "about to run input #$i..."
+  "$exe" < "$basedir/$i.in" > "$outfile"
+  difffile=$(tmp)
+  if diff -w "$outfile" "$basedir/$i.out" > "$difffile"; then true; else
+    cat "$difffile" | head -5
+    backup="test-$1-$2-$i-$(date '+%s').log"
+    cp "$outfile" "$cwd/$backup"
+    echo "Test failed on input #$i."
+    echo "Output saved to $backup"
+    exit 1
+  fi
+  rm "$outfile" "$difffile"
+done
+
+rm -r "$testdir"
+echo "testpoint complete."
