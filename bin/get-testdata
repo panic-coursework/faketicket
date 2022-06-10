@@ -1,0 +1,26 @@
+#!/bin/bash
+
+echo -n "Enter jbox short URL: https://jbox.sjtu.edu.cn/l/"
+read url
+
+want=fee9bef90443f997d0c27683df651c33b86ad72487dbb7d54f4c21705a9221e9
+actual=$(echo -n "ticket-2022-$url" | sha256sum | cut -d ' ' -f 1)
+if [ ! $want = $actual ]; then
+  echo "invalid link"
+  exit 1
+fi
+
+resid=$(curl -v "https://jbox.sjtu.edu.cn/l/$url" 2>&1 | grep -i location | cut -d / -f 7 | tr -d '\r')
+if [ -z $resid ]; then
+  echo "check your network"
+  exit 1
+fi
+
+zipfile=$(mktemp -p /tmp ticket.XXXXXXXXXX.zip)
+curl -L "https://jbox.sjtu.edu.cn:10081/v2/delivery/archives/$resid/" -o "$zipfile" || (echo "download failed!"; exit 1)
+
+LANG=C unzip "$zipfile" -d tests || (echo "unzip failed!"; exit 1)
+mv tests/*/* tests
+rmdir 'tests/火车票2022 开放数据'
+
+rm "$zipfile"

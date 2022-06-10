@@ -17,5 +17,8 @@ rm -f file.o
 rm -f *.ix
 rm -f orders ride-seats rollback-log trains users
 
+# logfiles
+rm -f *.log
+
 # valgrind
 rm -f vgcore.*

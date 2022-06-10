@@ -1,0 +1,24 @@
+#!/bin/bash
+
+EXE="./$1"
+VG_FLAGS="--leak-check=full --error-exitcode=1"
+
+if [ "$1" = "map_test-40a113" ]; then
+  "$EXE" | diff -w - lib/map_test.ans || exit 1
+  exit 0
+fi
+if [ "$1" = "hashmap_test-c23b0a" ]; then
+  "$EXE" | diff -w - lib/hashmap_test.ans || exit 1
+  exit 0
+fi
+if [ "$1" = "bptree_test-b5824a" ]; then
+  rm -f file.o
+  valgrind $VG_FLAGS "$EXE" < lib/file/bptree_test.in | diff -w - lib/file/bptree_test.ans || exit 1
+  exit 0
+fi
+if [ "$1" = "algorithm_test-2ec81a" ]; then
+  valgrind $VG_FLAGS "$EXE" < lib/algorithm_test.in | diff -w - lib/algorithm_test.ans || exit 1
+  exit 0
+fi
+
+valgrind $VG_FLAGS "$EXE" || exit 1

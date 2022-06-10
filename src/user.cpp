@@ -76,7 +76,7 @@ auto command::run (const command::AddUser &cmd)
     return Exception("not logged in");
   }
   auto privilegeCurr = User::privilegeOf(cmd.currentUser);
-  if (privilegeCurr >= cmd.privilege) {
+  if (privilegeCurr <= cmd.privilege) {
     return Exception("unauthorized");
   }
   if (User::has(cmd.username.data())) {
