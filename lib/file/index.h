@@ -94,11 +94,11 @@ class Index<Varchar<maxLength>, Model> {
     : ptr_(ptr), tree_(filename) {}
   /// inserts an object into the index.
   auto insert (const Model &model) -> void {
-    tree_.insert(model.*ptr_.hash(), model.id());
+    tree_.insert((model.*ptr_).hash(), model.id());
   }
   /// removes an object from the index.
   auto remove (const Model &model) -> void {
-    tree_.remove(model.*ptr_.hash(), model.id());
+    tree_.remove((model.*ptr_).hash(), model.id());
   }
   /// finds one Model in the index.
   auto findOne (const Key &key) -> Optional<Model> {
