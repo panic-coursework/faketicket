@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ ! -e build/Makefile ]; then
-  cmake .
+if [ ! -e Makefile ]; then
+  cmake . || (echo "Unable to configure project; try running bin/clean ?"; exit 1)
 fi
 
 make -j

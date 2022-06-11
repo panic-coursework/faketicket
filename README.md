@@ -6,6 +6,23 @@ SJTU CS1951 lab assignment
 Assignment details:
 <https://github.com/ACMClassCourse-2021/TicketSystem>
 
+## Getting Started
+
+You need CMake (≥ v3.16) and a C++ compiler capable of C++
+20\. We use g++ and clang++. To build the project, run
+`bin/build` from the root directory. More details can be
+found in `HACKING.md`.
+
+A Node.js binding is available. To build the binding, you
+need to have a recent version of Node.js and npm, and
+[`cmake-js`][cmake-js] on your \$PATH. To build the binding,
+run `bin/build-node` from the root directory.
+
+This project runs only on *nix systems (i.e. not Microsoft
+Windows).
+
+[cmake-js]: https://github.com/cmake-js/cmake-js
+
 ## Code Owners
 
 Overall structure: Alan-Liang    
