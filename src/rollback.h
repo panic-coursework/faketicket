@@ -72,7 +72,10 @@ struct LogEntryBase {
 
   static constexpr const char *filename = "rollback-log";
 };
-using LogEntry = file::Managed<LogEntryBase>;
+struct LastEntry {
+  int id;
+};
+using LogEntry = file::Managed<LogEntryBase, LastEntry>;
 
 /// inserts a log entry.
 auto log (const LogEntry::Content &content) -> void;

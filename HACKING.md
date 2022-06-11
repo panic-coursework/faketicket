@@ -81,6 +81,32 @@ User::truncate();
 User::ixUsername.truncate();
 ```
 
+### Using file metadata objects
+
+Metadata is a small block of storage at the beginning of a
+file. You can use this block to store a chunk of
+constant-sized data.
+
+For example, if we have:
+
+```cpp
+struct LastEntry {
+  int id;
+};
+using LogEntry = file::Managed<LogEntryBase, LastEntry>;
+```
+
+then we could use:
+
+```cpp
+// get metadata
+LastEntry metadata = LogEntry::file.getMeta();
+
+// set metadata
+LastEntry metadata { entry.id() };
+LogEntry::file.setMeta(metadata);
+```
+
 ### Using variants
 
 ```cpp
