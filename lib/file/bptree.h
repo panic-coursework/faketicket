@@ -6,7 +6,7 @@
 #include "algorithm.h"
 #include "file/array.h"
 #include "file/file.h"
-#include "file/internal/file.h"
+#include "file/internal/unmanaged-object.h"
 #include "file/set.h"
 #include "optional.h"
 #include "utility.h"
