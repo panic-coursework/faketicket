@@ -15,6 +15,7 @@ auto rollback::log (
   entry.timestamp = currentTime;
   entry.content = content;
   entry.save();
+  rollback::LogEntry::file.setMeta({ entry.id() });
 }
 
 auto command::run (const command::Rollback &cmd)
