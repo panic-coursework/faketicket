@@ -1,5 +1,5 @@
-#ifndef TICKET_LIB_FILE_INTERNAL_FILE_H_
-#define TICKET_LIB_FILE_INTERNAL_FILE_H_
+#ifndef TICKET_LIB_FILE_INTERNAL_UNMANAGED_OBJECT_H_
+#define TICKET_LIB_FILE_INTERNAL_UNMANAGED_OBJECT_H_
 
 #include "file/file.h"
 
@@ -46,4 +46,4 @@ class UnmanagedObject {
 
 } // namespace ticket::file::internal
 
-#endif // TICKET_LIB_FILE_INTERNAL_FILE_H_
+#endif // TICKET_LIB_FILE_INTERNAL_UNMANAGED_OBJECT_H_
