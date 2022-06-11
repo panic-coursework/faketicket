@@ -36,7 +36,7 @@ possibly some BSD), not Microsoft Windows.
   bindings build
 - `bin/get-testdata`: Downloads test points from the SJTU
   cloud drive. Only intended for members of the ACM class of
-  SJTU.
+  SJTU. Does not work on macOS.
 - `bin/run-test`: Runs a test in the test points downloaded
   by `bin/get-testdata`.
 - `bin/run-unit-test`: Runs a specific unit test. Used by
