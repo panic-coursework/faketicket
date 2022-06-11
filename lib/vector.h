@@ -78,6 +78,24 @@ class Vector {
     auto operator< (const const_iterator &rhs) const -> bool {
       return **this < *rhs;
     }
+    auto operator> (const iterator &rhs) const -> bool {
+      return rhs < *this;
+    }
+    auto operator> (const const_iterator &rhs) const -> bool {
+      return rhs < *this;
+    }
+    auto operator<= (const iterator &rhs) const -> bool {
+      return !(*this > rhs);
+    }
+    auto operator<= (const const_iterator &rhs) const -> bool {
+      return !(*this > rhs);
+    }
+    auto operator>= (const iterator &rhs) const -> bool {
+      return !(*this < rhs);
+    }
+    auto operator>= (const const_iterator &rhs) const -> bool {
+      return !(*this < rhs);
+    }
     friend class const_iterator;
     friend class Vector;
   };
@@ -131,6 +149,24 @@ class Vector {
     }
     auto operator< (const const_iterator &rhs) const -> bool {
       return **this < *rhs;
+    }
+    auto operator> (const iterator &rhs) const -> bool {
+      return rhs < *this;
+    }
+    auto operator> (const const_iterator &rhs) const -> bool {
+      return rhs < *this;
+    }
+    auto operator<= (const iterator &rhs) const -> bool {
+      return !(*this > rhs);
+    }
+    auto operator<= (const const_iterator &rhs) const -> bool {
+      return !(*this > rhs);
+    }
+    auto operator>= (const iterator &rhs) const -> bool {
+      return !(*this < rhs);
+    }
+    auto operator>= (const const_iterator &rhs) const -> bool {
+      return !(*this < rhs);
     }
     friend class iterator;
     friend class Vector;
