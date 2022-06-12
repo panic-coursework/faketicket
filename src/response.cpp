@@ -39,7 +39,7 @@ auto cout (const Vector<Order> &orders) -> void {
       << formatDateTime(date, cache.timeDeparture) << " -> "
       << cache.to.str() << ' '
       << formatDateTime(date, cache.timeArrival) << ' '
-      << order.price << ' '
+      << order.getSubTotal() << ' '
       << order.seats << '\n';
   }
 }
@@ -107,6 +107,7 @@ auto toJsObject (Napi::Env env, const Vector<Order> &orders)
     jsOrder["to"] = JS_DATE(date, cache.timeArrival);
     jsOrder["price"] = JS_NUM(order.price);
     jsOrder["seats"] = JS_NUM(order.seats);
+    jsOrder["subTotal"] = JS_NUM(order.getSubTotal());
   }
   return arr;
 }

@@ -15,6 +15,10 @@ file::Index<Ride, Order> Order::pendingOrders {
   "orders-pending.ride.ix"
 };
 
+auto OrderBase::getSubTotal () const -> long long {
+  return static_cast<long long>(price) * seats;
+}
+
 auto command::run (const command::BuyTicket &cmd)
   -> Result<Response, Exception> {
   if (!User::isLoggedIn(cmd.currentUser)) {
@@ -75,7 +79,9 @@ auto command::run (const command::BuyTicket &cmd)
   if (order.status == Order::kPending) {
     return BuyTicketResponse(BuyTicketEnqueued());
   }
-  return BuyTicketResponse(BuyTicketSuccess{order.price});
+  return BuyTicketResponse(BuyTicketSuccess{
+    order.getSubTotal()
+  });
 }
 
 auto command::run (const command::QueryOrder &cmd)

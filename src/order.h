@@ -32,12 +32,15 @@ struct OrderBase {
   Ride ride;
   int ixFrom, ixTo;
   int seats;
+  /// the price of a single ticket.
   int price;
   Status status;
   OrderCache cache;
 
   /// gets the corresponding train object.
   auto getTrain () -> Train;
+  /// gets the subtotal price of this order.
+  auto getSubTotal () const -> long long;
 
   static constexpr const char *filename = "orders";
 };
@@ -63,7 +66,7 @@ struct BuyTicketEnqueued {};
  * See BuyTicketResponse below for usage.
  */
 struct BuyTicketSuccess {
-  int price;
+  long long price;
 };
 using BuyTicketResponse = Variant<
   BuyTicketSuccess,
