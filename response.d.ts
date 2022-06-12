@@ -25,6 +25,7 @@ interface Order {
   to: Date
   price: number
   seats: number
+  subTotal: number
 }
 
 export type Response =
