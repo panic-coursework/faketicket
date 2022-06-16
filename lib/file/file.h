@@ -43,7 +43,6 @@ class File {
   File (const char *filename) {
     init_(filename, [] {});
   }
-  ~File () { clearCache(); }
 
   /// read n bytes at index into buf.
   auto get (void *buf, size_t index, size_t n) -> void {
@@ -54,15 +53,12 @@ class File {
     file_.seekg(offset_(index));
     file_.read((char *) buf, n);
     TICKET_ASSERT(file_.good());
-    // TODO(perf): memcmp overhead
     cache_.upsert(index, buf, n);
   }
   /// write n bytes at index from buf.
-  auto set (const void *buf, size_t index, size_t n) -> void {
-    if (!cache_.upsert(index, buf, n)) return;
-    file_.seekp(offset_(index));
-    file_.write((const char *) buf, n);
-    TICKET_ASSERT(file_.good());
+  auto set (const void *buf, size_t index, size_t n)
+    -> void {
+    cache_.upsert(index, buf, n, true);
   }
   /// @returns the stored index of the object
   auto push (const void *buf, size_t n) -> size_t {
@@ -84,7 +80,6 @@ class File {
     set(&meta, index, sizeof(meta));
     Metadata newMeta(index, true);
     set(&newMeta, -1, sizeof(newMeta));
-    cache_.remove(index);
   }
 
   /// gets user-provided metadata.
@@ -150,17 +145,28 @@ class File {
     }
   }
 
+  struct BeforeDestroy {
+    File *file;
+    auto operator() (size_t index, char *buf, int length)
+      -> void {
+      file->file_.seekp(offset_(index));
+      file->file_.write((const char *) buf, length);
+      TICKET_ASSERT(file->file_.good());
+    }
+  };
+
   auto meta_ () -> Metadata {
     Metadata retval;
     get(&retval, -1, sizeof(retval));
     return retval;
   }
-  auto offset_ (size_t index) -> size_t {
+  static auto offset_ (size_t index) -> size_t {
     return (index + 1) * szChunk;
   }
   std::fstream file_;
   constexpr static int kSzCache_ = 1024;
-  LruCache<size_t, kSzCache_> cache_;
+  LruCache<size_t, kSzCache_, BeforeDestroy>
+    cache_ { BeforeDestroy{this} };
 };
 
 /**

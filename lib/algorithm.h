@@ -3,9 +3,6 @@
 #define TICKET_LIB_ALGORITHM_H_
 
 #include <iostream>
-#ifndef ONLINE_JUDGE
-#include <algorithm>
-#endif // ONLINE_JUDGE
 
 #include "utility.h"
 
