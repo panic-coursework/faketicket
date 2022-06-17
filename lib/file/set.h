@@ -24,6 +24,9 @@ struct Set {
   Set () = default;
   size_t length = 0;
   T content[maxLength];
+  auto size () const -> size_t {
+    return length;
+  }
   auto indexOfInsert (const T &element) -> size_t {
     return lowerBound(content, content + length, element) - content;
   }

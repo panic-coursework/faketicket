@@ -48,6 +48,9 @@ struct Varchar {
   auto length () const -> int {
     return strlen(content);
   }
+  auto size () const -> int {
+    return strlen(content);
+  }
 
   template <int A>
   auto operator= (const Varchar<A> &that) -> Varchar & {
