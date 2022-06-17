@@ -24,6 +24,9 @@ struct Array {
  public:
   size_t length = 0;
   T content[maxLength];
+  auto size () const -> size_t {
+    return length;
+  }
   /// finds the index of element in the array.
   auto indexOf (const T &element) -> size_t {
     for (size_t i = 0; i < length; ++i) {
