@@ -3,6 +3,7 @@
 #include "datetime.h"
 #include "exception.h"
 #include "parser.h"
+#include "run.h"
 #include "rollback.h"
 #include "utility.h"
 
@@ -126,7 +127,7 @@ auto command::run (const command::ReleaseTrain &cmd)
 }
 auto command::run (const command::QueryTrain &cmd)
   -> Result<Response, Exception> {
-  
+
 }
 auto command::run (const command::QueryTicket &cmd)
   -> Result<Response, Exception> {

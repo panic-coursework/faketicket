@@ -30,6 +30,7 @@ possibly some BSD), not Microsoft Windows.
     - `src/node.cpp`, the Node.js binding
     - `src/parser.cpp`, the command parser implementation
     - `src/parser.h`, the command parser interface
+    - `src/run.h`, the command runner interface
     - `index.d.ts`, TypeScript declarations for the Node
       bindings
 - `bin/configure-node`: Configures the project for the Node
