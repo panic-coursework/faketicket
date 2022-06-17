@@ -2,9 +2,13 @@
 
 #include "datetime.h"
 #include "exception.h"
+#include "hashmap.h"
 #include "parser.h"
 #include "rollback.h"
 #include "utility.h"
+#include "vector.h"
+#include <algorithm>
+#include <functional>
 
 namespace ticket {
 
@@ -126,22 +130,73 @@ auto command::run (const command::ReleaseTrain &cmd)
 }
 auto command::run (const command::QueryTrain &cmd)
   -> Result<Response, Exception> {
-  auto train = Train::ixId.findOne(cmd.id); 
+  auto train = Train::ixId.findOne(cmd.id);
   if( ! train ) return Exception("No such train");
-  if( ! train->released ){
-    const int cnt_dur = train -> stops.size();
-    for(int i = 0; i < cnt_dur; ++ i){
-      
-    }
-  } 
+
+  auto ride = train->getRide( cmd.date);
+  if( ! ride ) return Exception("No such ride");
+
+  return ride;
 }
 auto command::run (const command::QueryTicket &cmd)
   -> Result<Response, Exception> {
-  // TODO
+  Vector<Range> vct;
+  vct.clear();
+  auto v_from = Train::ixStop.findMany( std::hash<std::string>()(cmd.from) );
+  auto v_to = Train::ixStop.findMany( std::hash<std::string>()(cmd.to) );
+
+  for(auto ele: v_to)
+    v_from.push_back(ele);
+
+  Train train;
+  sort( v_from.begin(), v_from.end() );
+  v_from.push_back(0);// for bound
+  for(int i = 1; i + 1 < v_from.size(); ++ i)
+    if( v_from[i] == v_from[i - 1] && v_from[i] != v_from[i + 1] ){
+      train = Train::get(v_from[i]);
+      auto ixFrom = train.indexOfStop(cmd.from);
+      auto ixTo = train.indexOfStop(cmd.to);
+
+      if( !ixFrom || !ixTo || ixFrom > ixTo ) continue;
+      auto rd = train.getRide( cmd.date, ixFrom);
+      if( ! rd ) continue;
+
+      long long totPrice = 0;
+      int seats = train.seats;
+      for(int j = ixFrom; j < ixTo; ++ j){
+        totPrice += train.edges[j].price;
+        seats = seats < rd->seatsRemaining[i] ? seats : rd->seatsRemaining[i];
+      } 
+
+      vct.push_back( ticket::Range( *rd, ixFrom, ixTo, 
+        totPrice, train.edges[ixTo - 1].arrival - train.edges[ixFrom].departure, seats, train.trainId ) );
+    }
+
+  sort( vct.begin(), vct.end(), cmp(const Range&, const Range&, cmd.sort) );
+  return vct;
 }
 auto command::run (const command::QueryTransfer &cmd)
   -> Result<Response, Exception> {
-  // TODO
+  using StationName = file::Varchar<30>;
+  using TrainId = int;
+
+  auto v_from = Train::ixStop.findMany( std::hash<std::string>()(cmd.from) );
+  auto v_to = Train::ixStop.findMany( std::hash<std::string>()(cmd.to) );
+  
+  struct sol{
+    
+  }
+  
+  HashMap< StationName, TrainId> map();
+
+  for(auto &ele:v_from){
+    Train train = Train::get(ele);
+    int no = train.indexOfStop(cmd.from);
+    auto rd = train.getRide( cmd.date, no);
+    if( ! rd ) continue;
+
+    for(int i = no; i < train.)
+  }
 }
 
 auto rollback::run (const rollback::AddTrain &log)
@@ -158,21 +213,31 @@ auto rollback::run (const rollback::ReleaseTrain &log)
 }
 
 void Range::output()const{
-  const Train &tr = Train::get(rd->ride.train);
+  const Train &tr = Train::get(rd.ride.train);
   std::cout << 
     tr.trainId << ' ' <<
     tr.stops[ixFrom] << ' '<<
-    tr.begin + tr.edges[ixFrom].departure.daysOverflow() << ' ' <<
-    tr.edges[ixFrom].departure<< ' '<<
+    formatDateTime(tr.begin, tr.edges[ixFrom].departure) << ' '<<
     tr.stops[ixTo] << ' ' <<
-    tr.begin + tr.edges[ixTo].arrival.daysOverflow() << ' ' <<
-    tr.edges[ixFrom].arrival << ' '<<
+    formatDateTime(tr.begin, tr.edges[ixTo].arrival) << ' '<<
     tr.totalPrice(ixFrom, ixTo) << ' ';
 
   int sts = tr.seats;
   for(int i = ixFrom; i <= ixTo; ++ i)
-    sts =  sts < rd -> seatsRemaining[i] ? sts : rd -> seatsRemaining[i];
+    sts =  sts < (rd.seatsRemaining[i]) ? sts : (rd.seatsRemaining[i]);
   std::cout << sts << std::endl;
 }
+
+bool cmp(const Range& r1, const Range& r2, command::SortType tp){
+  if( tp == command::kTime){
+    if( r1.time != r2.time) return  r1.time < r2.time;
+    return r1.trainId < r2.trainId;  
+  }
+  else{
+    if( r1.totalPrice != r2.totalPrice) return  r1.totalPrice < r2.totalPrice;
+    return r1.trainId < r2.trainId;
+  }
+}
+
 
 } // namespace ticket

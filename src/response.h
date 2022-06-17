@@ -17,23 +17,23 @@ namespace ticket {
 using Response = Variant<
   Unit,
   User,
-  Train,
-  Vector<Train>,
   BuyTicketResponse,
-  Vector<Order>
+  Vector<Order>,
+  RideSeats,
+  Vector<Train>,
+  Vector<Range>
   // the exit command does not need a response object.
 >;
 
 namespace response {
 
 //  corrections guar
-auto cout (const Vector<Range> & ranges) -> void;
 auto cout (const Unit & /* unused */) -> void;
 auto cout (const User &user) -> void;
-auto cout (const Train &train) -> void;
-auto cout (const Vector<Train> &trains) -> void;
 auto cout (const BuyTicketResponse &ticket) -> void;
 auto cout (const Vector<Order> &orders) -> void;
+auto cout (const RideSeats &rd) -> void;// for "QueryTrain"
+auto cout (const Vector<Range> & ranges) -> void;// for "QueryTicket"
 
 #ifdef BUILD_NODEJS
 

@@ -1,7 +1,9 @@
 #include "response.h"
+#include "datetime.h"
 #include "exception.h"
 #include "train.h"
 
+#include <cstddef>
 #include <iostream>
 
 namespace ticket::response {
@@ -15,13 +17,6 @@ auto cout (const User &user) -> void {
     << user.name << ' '
     << user.email << ' '
     << user.privilege << '\n';
-}
-
-auto cout (const Vector<Range> & ranges) -> void{
-  
-}
-auto cout (const Vector<Train> &trains) -> void {
-  // TODO
 }
 auto cout (const BuyTicketResponse &ticket) -> void {
   if (auto succ = ticket.get<BuyTicketSuccess>()) {
@@ -46,6 +41,39 @@ auto cout (const Vector<Order> &orders) -> void {
       << order.seats << '\n';
   }
 }
+/**
+  * output format:
+  *  <departure[i] formatDateTime>' '<price[i]>' '<seats[i]>'\n' 
+  *<stations[i+1]>' '<<arrival[i] formatDateTime>"-> "
+*/
+auto cout (const RideSeats &rd) -> void{
+  Train train = Train::get( rd.ride.train );
+  std::cout << train.trainId << ' ' << train.type << '\n';
+  
+  // from 
+  std::cout << train.stops[0] << " xx-xx xx:xx -> ";
+
+  long long tot_price = 0;
+  for(int i = 0; i < train.edges.size(); ++ i){
+    std :: cout << 
+    formatDateTime( rd.ride.date, train.edges[i].departure )
+    << ' ' << tot_price << ' ' << rd.seatsRemaining[i] <<'\n'
+    << train.stops[i + 1] << ' ' << 
+    formatDateTime( rd.ride.date, train.edges[i + 1].arrival )
+    << " -> ";
+
+    tot_price += train.edges[i].price;
+  }
+  //to
+  std::cout << "xx-xx xx:xx " << tot_price << " x\n";
+}
+auto cout (const Vector<Range> & ranges) -> void{
+  std::cout << ranges.size() << '\n';
+  for(auto &ele: ranges)
+    ele.output();
+}
+
+
 
 #ifdef BUILD_NODEJS
 

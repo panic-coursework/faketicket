@@ -9,6 +9,7 @@
 #include "file/index.h"
 #include "file/varchar.h"
 #include "optional.h"
+#include "parser.h"
 
 namespace ticket {
 
@@ -45,8 +46,11 @@ struct Train : public file::Managed<TrainBase> {
   Train () = default;
   Train (const file::Managed<TrainBase> &train)
     : file::Managed<TrainBase>(train) {}
+  // every record with its identifier
   static file::Index<Train::Id, Train> ixId; // maintain it
+  // deleted = 0
   static file::BpTree<size_t, int> ixStop; // maintain it
+  // released = 1
 
   /// finds the index of the station of the given name.
   auto indexOfStop (const std::string &name) const
@@ -98,19 +102,30 @@ struct RideSeats : public file::Managed<RideSeatsBase> {
   RideSeats () = default;
   RideSeats (const file::Managed<RideSeatsBase> &rideSeats)
     : file::Managed<RideSeatsBase>(rideSeats) {}
-  static file::Index<Ride, RideSeats> ixRide;
+  static file::Index<Ride, RideSeats> ixRide;// maintain it
 };
 
 struct Range{
-  RideSeats *rd;
-  int ixFrom, ixTo;
+  using Id = file::Varchar<20>;
 
-  Range(): rd(nullptr){}
-  Range(RideSeats * _rd, int _ixFrom, int _ixTo):
-   rd(_rd), ixFrom(_ixFrom), ixTo(_ixTo){};
+  RideSeats rd;
+  int ixFrom, ixTo;
+  long long totalPrice;
+  Duration time;
+  int seats;
+  Id trainId;
+
+  Range() = default;
+  Range(RideSeats _rd, int _ixFrom, int _ixTo
+  , long long _totalPrice, Duration _time,int _seats, Id _id):
+   rd(_rd), ixFrom(_ixFrom), ixTo(_ixTo),
+   totalPrice(_totalPrice), time(_time), seats(_seats),trainId(_id){};
   
   void output()const;
 };
+
+
+bool cmp(const Range& r1, const Range& r2, command::SortType tp);
 
 } // namespace ticket
 
