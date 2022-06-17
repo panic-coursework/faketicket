@@ -1,4 +1,5 @@
 #include "response.h"
+#include "train.h"
 
 #include <iostream>
 
@@ -14,8 +15,8 @@ auto cout (const User &user) -> void {
     << user.email.str() << ' '
     << user.privilege << '\n';
 }
-auto cout (const Train &train) -> void {
-  // TODO
+auto cout (const Ride &train) -> void {
+  
 }
 auto cout (const Vector<Train> &trains) -> void {
   // TODO
