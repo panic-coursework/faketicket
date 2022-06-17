@@ -1,5 +1,7 @@
 #include "train.h"
 
+#include "datetime.h"
+#include "exception.h"
 #include "parser.h"
 #include "rollback.h"
 #include "utility.h"
@@ -67,21 +69,55 @@ auto RideSeatsBase::rangeAdd (int dx, int ixFrom, int ixTo)
 
 auto command::run (const command::AddTrain &cmd)
   -> Result<Response, Exception> {
-  // TODO
+  if( ! Train::ixId.findOneId(cmd.id) ) return Exception("Train is already exists");
+  Train train;
+  train.trainId = cmd.id;
+  train.type = cmd.type;
+  train.begin = cmd.dates[0];
+  train.end = cmd.dates[1];
+  train.seats = cmd.seats;
+
+  for(const auto & s : cmd.stations) train.stops.push(s);
+  Instant ins = cmd.departure;
+  for(int i = 0; i + 1 < cmd.stations.size(); ++ i){
+    train.edges.push( {cmd.prices[i], ins, ins + cmd.durations[i]} );
+    ins = ins + cmd.durations[i];
+    if(i + 1 < cmd.stations.size()) ins = ins + cmd.stopoverTimes[i];
+  }
+
+  train.save();
+
+  return unit;
 }
 auto command::run (const command::DeleteTrain &cmd)
   -> Result<Response, Exception> {
-  // TODO
+  auto tr = Train :: ixId . findOne( cmd.id );
+  if( ! tr ) return Exception("No train found");
+  tr -> deleted = true;
+  tr -> update();
+  return unit;
 }
 auto command::run (const command::ReleaseTrain &cmd)
   -> Result<Response, Exception> {
-  // TODO
-  Optional<Train> tr = Train::ixId.findOne(cmd.id);
-  if (!tr) {
-    return Exception("");
-  }
+  auto tr = Train::ixId.findOne(cmd.id);
+  if( ! tr ) return Exception("No such train");
+  tr->released = true;
+
+  const size_t cnt_dur = tr->edges.length;
+  const int _seats = tr->seats;
+
   RideSeats rd;
-  rd.ride.train = tr->id();
+  rd.ride.train = tr -> id();
+
+  for(auto i = tr->begin; i <= tr->end; ++ i){
+    rd.ride.date = i;
+    for(int j = 1; j <= cnt_dur; ++ j)
+      rd.seatsRemaining.push(_seats);
+
+    RideSeats :: ixRide.insert(rd);
+    rd.save();
+  }
+  return unit;
 }
 auto command::run (const command::QueryTrain &cmd)
   -> Result<Response, Exception> {
