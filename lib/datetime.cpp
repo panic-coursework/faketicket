@@ -87,9 +87,6 @@ auto Date::operator- (int dt) const -> Date {
 auto Date::operator- (Date rhs) const -> int {
   return days_ - rhs.days_;
 }
-auto Date::operator< (const Date &rhs) const -> bool {
-  return days_ < rhs.days_;
-}
 
 auto Date::inRange (Date begin, Date end) const -> bool {
   return begin.days_ <= days_ && days_ <= end.days_;
@@ -106,9 +103,6 @@ auto Duration::operator- (Duration dt) const -> Duration {
 }
 auto Duration::operator- () const -> Duration {
   return Duration(-minutes_);
-}
-auto Duration::operator< (const Duration &rhs) const -> bool {
-  return minutes_ < rhs.minutes_;
 }
 
 Instant::Instant (int hours, int minutes) {
@@ -144,9 +138,6 @@ auto Instant::operator- (Duration dt) const -> Instant {
 }
 auto Instant::operator- (Instant rhs) const -> Duration {
   return Duration(minutes_ - rhs.minutes_);
-}
-auto Instant::operator< (const Instant &rhs) const -> bool {
-  return minutes_ < rhs.minutes_;
 }
 
 auto formatDateTime (Date date, Instant instant)

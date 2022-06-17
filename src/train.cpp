@@ -18,7 +18,7 @@ auto Train::indexOfStop (const std::string &name) const
   -> Optional<int> {
   for (int i = 0; i < stops.length; ++i) {
     // TODO(perf): eliminate this string copy
-    if (stops[i].name.str() == name) return i;
+    if (stops[i].str() == name) return i;
   }
   return unit;
 }
@@ -76,6 +76,12 @@ auto command::run (const command::DeleteTrain &cmd)
 auto command::run (const command::ReleaseTrain &cmd)
   -> Result<Response, Exception> {
   // TODO
+  Optional<Train> tr = Train::ixId.findOne(cmd.id);
+  if (!tr) {
+    return Exception("");
+  }
+  RideSeats rd;
+  rd.ride.train = tr->id();
 }
 auto command::run (const command::QueryTrain &cmd)
   -> Result<Response, Exception> {
