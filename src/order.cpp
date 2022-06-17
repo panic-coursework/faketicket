@@ -3,6 +3,7 @@
 #include "algorithm.h"
 #include "parser.h"
 #include "rollback.h"
+#include "run.h"
 #include "user.h"
 
 namespace ticket {

@@ -4,6 +4,7 @@
 #include "parser.h"
 #include "response.h"
 #include "rollback.h"
+#include "run.h"
 #include "utility.h"
 
 auto main () -> int {
