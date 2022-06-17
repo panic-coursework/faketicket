@@ -126,7 +126,14 @@ auto command::run (const command::ReleaseTrain &cmd)
 }
 auto command::run (const command::QueryTrain &cmd)
   -> Result<Response, Exception> {
-  
+  auto train = Train::ixId.findOne(cmd.id); 
+  if( ! train ) return Exception("No such train");
+  if( ! train->released ){
+    const int cnt_dur = train -> stops.size();
+    for(int i = 0; i < cnt_dur; ++ i){
+      
+    }
+  } 
 }
 auto command::run (const command::QueryTicket &cmd)
   -> Result<Response, Exception> {
@@ -148,6 +155,24 @@ auto rollback::run (const rollback::DeleteTrain &log)
 auto rollback::run (const rollback::ReleaseTrain &log)
   -> Result<Unit, Exception> {
   // TODO
+}
+
+void Range::output()const{
+  const Train &tr = Train::get(rd->ride.train);
+  std::cout << 
+    tr.trainId << ' ' <<
+    tr.stops[ixFrom] << ' '<<
+    tr.begin + tr.edges[ixFrom].departure.daysOverflow() << ' ' <<
+    tr.edges[ixFrom].departure<< ' '<<
+    tr.stops[ixTo] << ' ' <<
+    tr.begin + tr.edges[ixTo].arrival.daysOverflow() << ' ' <<
+    tr.edges[ixFrom].arrival << ' '<<
+    tr.totalPrice(ixFrom, ixTo) << ' ';
+
+  int sts = tr.seats;
+  for(int i = ixFrom; i <= ixTo; ++ i)
+    sts =  sts < rd -> seatsRemaining[i] ? sts : rd -> seatsRemaining[i];
+  std::cout << sts << std::endl;
 }
 
 } // namespace ticket

@@ -36,14 +36,17 @@ struct TrainBase {
   bool released = false;
   bool deleted = false;
 
+  // save() when first called
+  // update() when members changed
+
   static constexpr const char *filename = "trains";
 };
 struct Train : public file::Managed<TrainBase> {
   Train () = default;
   Train (const file::Managed<TrainBase> &train)
     : file::Managed<TrainBase>(train) {}
-  static file::Index<Train::Id, Train> ixId;
-  static file::BpTree<size_t, int> ixStop;
+  static file::Index<Train::Id, Train> ixId; // maintain it
+  static file::BpTree<size_t, int> ixStop; // maintain it
 
   /// finds the index of the station of the given name.
   auto indexOfStop (const std::string &name) const
@@ -78,7 +81,7 @@ struct Ride {
 
 struct RideSeatsBase {
   Ride ride;
-  file::Array<int, 99> seatsRemaining;
+  file::Array<int, 99> seatsRemaining;// maintain it
 
   /**
    * @brief calculates how many tickets are still available.
@@ -96,6 +99,17 @@ struct RideSeats : public file::Managed<RideSeatsBase> {
   RideSeats (const file::Managed<RideSeatsBase> &rideSeats)
     : file::Managed<RideSeatsBase>(rideSeats) {}
   static file::Index<Ride, RideSeats> ixRide;
+};
+
+struct Range{
+  RideSeats *rd;
+  int ixFrom, ixTo;
+
+  Range(): rd(nullptr){}
+  Range(RideSeats * _rd, int _ixFrom, int _ixTo):
+   rd(_rd), ixFrom(_ixFrom), ixTo(_ixTo){};
+  
+  void output()const;
 };
 
 } // namespace ticket

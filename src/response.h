@@ -26,6 +26,8 @@ using Response = Variant<
 
 namespace response {
 
+//  corrections guar
+auto cout (const Vector<Range> & ranges) -> void;
 auto cout (const Unit & /* unused */) -> void;
 auto cout (const User &user) -> void;
 auto cout (const Train &train) -> void;
