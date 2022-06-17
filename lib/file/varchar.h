@@ -2,6 +2,7 @@
 #define TICKET_LIB_FILE_VARCHAR_H_
 
 #include <cstring>
+#include <fstream>
 #include <iostream>
 
 #include "exception.h"
@@ -73,6 +74,13 @@ struct Varchar {
   template <int A>
   auto operator!= (const Varchar<A> &that) const -> bool {
     return hash() != that.hash();
+  }
+
+  friend auto operator<< (
+    std::ostream &os,
+    const Varchar &self
+  ) -> std::ostream & {
+    return os << self.content;
   }
 
   auto hash () const -> size_t {

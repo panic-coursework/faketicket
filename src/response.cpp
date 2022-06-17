@@ -10,13 +10,13 @@ auto cout (const Unit & /* unused */) -> void {
 }
 auto cout (const User &user) -> void {
   std::cout
-    << user.username.str() << ' '
-    << user.name.str() << ' '
-    << user.email.str() << ' '
+    << user.username << ' '
+    << user.name << ' '
+    << user.email << ' '
     << user.privilege << '\n';
 }
 auto cout (const Ride) -> void {
-  
+
 }
 auto cout (const Vector<Train> &trains) -> void {
   // TODO
