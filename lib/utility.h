@@ -129,6 +129,35 @@ inline auto isVisibleChar (char ch) -> bool {
   return ch >= '\x21' && ch <= '\x7E';
 }
 
+template <typename T>
+class Comparable {
+ public:
+  friend auto operator< (const T &lhs, const T &rhs)
+    -> bool {
+    return lhs.cmp(rhs) < 0;
+  }
+  friend auto operator> (const T &lhs, const T &rhs)
+    -> bool {
+    return lhs.cmp(rhs) > 0;
+  }
+  friend auto operator<= (const T &lhs, const T &rhs)
+    -> bool {
+    return lhs.cmp(rhs) <= 0;
+  }
+  friend auto operator>= (const T &lhs, const T &rhs)
+    -> bool {
+    return lhs.cmp(rhs) >= 0;
+  }
+  friend auto operator== (const T &lhs, const T &rhs)
+    -> bool {
+    return lhs.cmp(rhs) == 0;
+  }
+  friend auto operator!= (const T &lhs, const T &rhs)
+    -> bool {
+    return lhs.cmp(rhs) != 0;
+  }
+};
+
 } // namespace ticket
 
 #endif // TICKET_LIB_UTILITY_H_

@@ -21,9 +21,6 @@ struct RideSeats;
 struct TrainBase {
   using Id = file::Varchar<20>;
   using Type = char;
-  struct Stop {
-    Station::Id name;
-  };
   struct Edge {
     int price;
     Instant departure;
@@ -31,7 +28,7 @@ struct TrainBase {
   };
 
   Id trainId;
-  file::Array<Stop, 100> stops;
+  file::Array<Station::Id, 100> stops;
   file::Array<Edge, 99> edges;
   int seats;
   Date begin, end;
