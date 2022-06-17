@@ -69,7 +69,7 @@ auto RideSeatsBase::rangeAdd (int dx, int ixFrom, int ixTo)
 
 auto command::run (const command::AddTrain &cmd)
   -> Result<Response, Exception> {
-  if( ! Train::ixId.findOneId(cmd.id) ) return Exception("Train is already exists");
+  if( Train::ixId.findOneId(cmd.id) ) return Exception("Train is already exists");
   Train train;
   train.trainId = cmd.id;
   train.type = cmd.type;
@@ -86,6 +86,7 @@ auto command::run (const command::AddTrain &cmd)
   }
 
   train.save();
+  Train::ixId.insert(train);
 
   return unit;
 }
@@ -93,8 +94,11 @@ auto command::run (const command::DeleteTrain &cmd)
   -> Result<Response, Exception> {
   auto tr = Train :: ixId . findOne( cmd.id );
   if( ! tr ) return Exception("No train found");
+  if( tr -> released ) return Exception("Failed to delete");
   tr -> deleted = true;
   tr -> update();
+  Train::ixId.remove(*tr);
+
   return unit;
 }
 auto command::run (const command::ReleaseTrain &cmd)
@@ -106,22 +110,23 @@ auto command::run (const command::ReleaseTrain &cmd)
   const size_t cnt_dur = tr->edges.length;
   const int _seats = tr->seats;
 
-  RideSeats rd;
-  rd.ride.train = tr -> id();
+  for(int j = 0; j < cnt_dur + 1; ++j)
+    Train::ixStop.insert( tr->stops[j].hash(), tr->id() );
 
   for(auto i = tr->begin; i <= tr->end; ++ i){
-    rd.ride.date = i;
+    RideSeats rd;
+    rd.ride.train = tr -> id();
     for(int j = 1; j <= cnt_dur; ++ j)
       rd.seatsRemaining.push(_seats);
-
-    RideSeats :: ixRide.insert(rd);
+    rd.ride.date = i;
     rd.save();
+    RideSeats :: ixRide.insert(rd);
   }
   return unit;
 }
 auto command::run (const command::QueryTrain &cmd)
   -> Result<Response, Exception> {
-  // TODO
+  
 }
 auto command::run (const command::QueryTicket &cmd)
   -> Result<Response, Exception> {

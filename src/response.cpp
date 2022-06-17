@@ -15,7 +15,7 @@ auto cout (const User &user) -> void {
     << user.email.str() << ' '
     << user.privilege << '\n';
 }
-auto cout (const Ride &train) -> void {
+auto cout (const Ride) -> void {
   
 }
 auto cout (const Vector<Train> &trains) -> void {
