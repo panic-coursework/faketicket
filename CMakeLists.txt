@@ -6,6 +6,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "-g -Wno-invalid-offsetof")
 set(CMAKE_EXPORT_COMPILE_COMMANDS true)
 
+if(DEFINED INTERACTIVE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTICKET_INTERACTIVE")
+endif()
+
 set(TICKET_INCLUDES
   ${ticket_SOURCE_DIR}/lib
   ${ticket_SOURCE_DIR}/src

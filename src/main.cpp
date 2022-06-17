@@ -36,11 +36,22 @@ auto main () -> int {
     cmd.result().visit([] (const auto &args) {
       auto res = ticket::command::run(args);
       if (res.error()) {
-        std::cout << "-1\n";
+        if constexpr (ticket::isInteractive) {
+          std::cout << "\x1b[31m" << res.error()->what()
+            << "\x1b[0m\n";
+        } else {
+          std::cout << "-1\n";
+        }
       } else {
+        if constexpr (ticket::isInteractive) {
+          std::cout << "\x1b[32m";
+        }
         res.result().visit([] (const auto &res) {
           ticket::response::cout(res);
         });
+        if constexpr (ticket::isInteractive) {
+          std::cout << "\x1b[0m";
+        }
       }
     });
   }

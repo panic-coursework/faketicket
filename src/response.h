@@ -24,6 +24,13 @@ using Response = Variant<
   // the exit command does not need a response object.
 >;
 
+constexpr static bool isInteractive =
+#ifdef TICKET_INTERACTIVE
+  true;
+#else
+  false;
+#endif
+
 namespace response {
 
 auto cout (const Unit & /* unused */) -> void;
