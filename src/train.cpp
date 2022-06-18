@@ -9,6 +9,7 @@
 #include "rollback.h"
 #include "utility.h"
 #include "vector.h"
+#include <cstddef>
 #include <sys/_types/_key_t.h>
 
 namespace ticket {
@@ -74,7 +75,8 @@ auto RideSeatsBase::rangeAdd (int dx, int ixFrom, int ixTo)
 
 auto command::run (const command::AddTrain &cmd)
   -> Result<Response, Exception> {
-  if( Train::ixId.findOneId(cmd.id) ) return Exception("Train is already exists");
+  if( Train::ixId.findOneId(cmd.id) )
+    return Exception("Train is already exists");
   Train train;
   train.trainId = cmd.id;
   train.type = cmd.type;
@@ -177,7 +179,8 @@ auto command::run (const command::QueryTicket &cmd)
       auto seats = rd->ticketsAvailable(*ixFrom, *ixTo);
 
       vct.push_back( ticket::Range( *rd, *ixFrom, *ixTo,
-        totPrice, train.edges[*ixTo - 1].arrival - train.edges[*ixFrom].departure, seats, train.trainId ) );
+        totPrice, train.edges[*ixTo - 1].arrival
+          - train.edges[*ixFrom].departure, seats, train.trainId ) );
     }
 
   sort( vct.begin(), vct.end(), Cmp(
@@ -186,7 +189,8 @@ auto command::run (const command::QueryTicket &cmd)
         if( r1.time != r2.time) return  r1.time < r2.time;
         return r1.trainId < r2.trainId;
       }
-      if( r1.totalPrice != r2.totalPrice) return  r1.totalPrice < r2.totalPrice;
+      if( r1.totalPrice != r2.totalPrice)
+        return  r1.totalPrice < r2.totalPrice;
       return r1.trainId < r2.trainId;
     }
   )
@@ -194,50 +198,107 @@ auto command::run (const command::QueryTicket &cmd)
   return vct;
 }
 
-struct KeySection{
-  int ixFrom, ixTo;
-  // from_station_index; To_station_index
-  // one is cmd.from/cmd.to; the other is mid_station
-  int train_num_in_vector;
-  // the train's index in trains_f/trains_t
-  Instant departure, arrival;
-  // departure.dateOverflow() should be 0
-  Date begin, end;
-  // for vFrom: available date for ixFrom
-  // for vTo: should all be cmd.date
+struct Section{
+  using Id = file::Varchar<20>;
+  Id trainId;
+  int trainNum, ixKey, ixMid;
+  Instant Departure, Arrival;// all based on cmd.date
+  // Departure.daysOverflow() = 0
+  int res;// Just for midSt->To
+  //init: res = train.end - train.begin
+
+  Section(): trainNum(-1){}
 };
-
-bool cmp_f(const KeySection & r1, const KeySection & r2){
-  return r1.arrival < r2.arrival;
-}
-
-bool cmp_t(const KeySection & r1, const KeySection & r2){
-  return r1.departure < r2.departure;
-}
 
 auto command::run (const command::QueryTransfer &cmd)
   -> Result<Response, Exception> {
-  using TrainId = int;
+  ////////////////////////////////////////////////////////////////
+  // generate: Vector< Vector<Section> > Vf, Vt;
+  int _no_st = 0;
+  Map<size_t, int > no_st;
+  Vector< Vector<Section> > Vf, Vt;
 
-  auto v_f = Train::ixStop.findMany( std::hash<std::string>()(cmd.from) );
-  auto v_t = Train::ixStop.findMany( std::hash<std::string>()(cmd.to) );
+  auto vTrainNum_From =
+    Train::ixStop.findMany( std::hash<std::string>()(cmd.from) );
+  auto vTrainNum_To =
+    Train::ixStop.findMany( std::hash<std::string>()(cmd.to) );
 
-  Vector<Train> trains_f, trains_t;
-  int mid_st_no = 0;
+  Vector<Train> TrainsFrom, TrainsTo;
+  for(auto &train_num: vTrainNum_From)
+    TrainsFrom.push_back( Train::get(train_num) );
+  for(auto &train_num: vTrainNum_To)
+    TrainsTo.push_back( Train::get(train_num) );
 
-  Map<size_t, int> mp;// station::Id.hash() -> mid_st_no;
-  Vector<KeySection> vFrom, vTo;
+  for(int i = 0; i < TrainsFrom.size(); ++ i){
+    Train &train = TrainsFrom[i];
 
-  // TODO: get Vector<KeySection> vFrom, vTo;
+    Section it;
+    it.trainId = train.trainId;
+    it.trainNum = i;
+    it.ixKey = train.indexOfStop(cmd.from);
+    it.Departure =
+      train.edges[ it.ixKey ].arrival.withoutOverflow();
+    if( ! train.getRide( cmd.date, it.ixKey) ) continue;
 
-  sort(vFrom.begin(), vFrom.end(), cmp_f);
-  sort(vTo.begin(), vTo.end(), cmp_t);
+    //get st_num
 
-  // how to set the compare function
-  Map< >mp;
 
-  for(auto &ele: vTo){
+    for(int j = it.ixKey + 1; j < train.stops.size(); ++ j){
+      int &st_num = no_st[ std::hash<std::string>()(train.stops[j])];
+      if( ! st_num ) st_num = ++ _no_st;
+
+      it.ixMid = j;
+      it.Arrival = train.edges[j - 1].arrival
+        - (train.edges[it.ixKey].departure
+        - it.Departure);
+
+      Vf[st_num].push_back(it);
+    }
   }
+
+  for(int i = 0; i < TrainsTo.size(); ++ i){
+    Train &train = TrainsTo[i];
+
+    Section it;
+    it.trainId = train.trainId;
+    it.trainNum = i;
+    it.ixKey = train.indexOfStop(cmd.to);
+    it.Arrival = train.edges[it.ixKey - 1].arrival
+      + Duration( (train.begin - cmd.date) * 24 * 60) ;
+    // TO BE CHECKED
+
+    for(int j = 0; j < it.ixKey; ++ j){
+      int &st_num = no_st[ std::hash<std::string>()(train.stops[j])];
+      if( ! st_num ) st_num = ++ _no_st;
+
+      it.res = train.end - train.begin;
+      it.ixMid = j;
+      it.Departure = it.Arrival
+        +(train.edges[j].departure
+        - train.edges[ it.ixKey ].arrival);
+      // TO BE CHECKED: can Duration be negative?
+
+      //Section validity check
+      for(; it.res && it.Departure.daysOverflow() < 0;){
+        -- it.res;
+        it.Departure =  it.Departure + Duration(24 * 60);
+        it.Arrival = it.Arrival + Duration(24 * 60);
+      }
+
+      if( it.Departure.daysOverflow() < 0) continue;
+      Vt[st_num].push_back(it);
+    }
+
+
+
+
+
+  }
+  ////////////////////////////////////////////////////////////////
+  // get Section from_mid, mid_to;
+  Section from_mid, mid_to;
+
+
 }
 
 auto rollback::run (const rollback::AddTrain &log)
