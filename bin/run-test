@@ -34,7 +34,7 @@ function tmpdir () {
   if [ Darwin = "$(uname -s)" ]; then
     mktemp -d /tmp/ticket.XXXXXXXXXX
   else
-    mktemp -d -p /tmp/ticket.XXXXXXXXXX
+    mktemp -d -p /tmp ticket.XXXXXXXXXX
   fi
 }
 

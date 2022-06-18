@@ -8,7 +8,7 @@ auto split (std::string &str, char sep)
   auto cstr = str.c_str();
   int start = 0;
   for (int i = 0; i < str.length(); ++i) {
-    if (str[i] == ' ') {
+    if (str[i] == sep) {
       str[i] = '\0';
       if (i != start) {
         res.push_back(std::string_view(cstr + start));

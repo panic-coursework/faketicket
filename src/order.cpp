@@ -124,12 +124,13 @@ auto command::run (const command::RefundTicket &cmd)
   log.status = order.status;
   rollback::log(log);
 
+  order.status = Order::kRefunded;
+  order.update();
+
   // deleting a pending order does not need to check other
   // pending orders.
   if (order.status == Order::kPending) {
     Order::pendingOrders.remove(order);
-    order.status = Order::kRefunded;
-    order.update();
     return unit;
   }
 
