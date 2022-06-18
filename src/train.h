@@ -127,19 +127,6 @@ struct Range{
   void output()const;
 };
 
-struct KeySection{
-  int ixFrom, ixTo;
-  // from_station_index To_station_index
-  // one is cmd.from/cmd.to; the other is mid_station
-  int train_num_in_vector;
-  // the train's index in trains_f/trains_t
-  Instant departure, arrival;
-  // departure.dateOverflow() should be 0
-  Date begin, end;
-  // for vFrom: available date for ixFrom
-  // for vTo: should all be cmd.date
-};
-
 } // namespace ticket
 
 #endif // TICKET_TRAIN_H_

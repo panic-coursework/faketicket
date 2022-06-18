@@ -9,6 +9,7 @@
 #include "rollback.h"
 #include "utility.h"
 #include "vector.h"
+#include <sys/_types/_key_t.h>
 
 namespace ticket {
 
@@ -192,11 +193,31 @@ auto command::run (const command::QueryTicket &cmd)
   );
   return vct;
 }
+
+struct KeySection{
+  int ixFrom, ixTo;
+  // from_station_index; To_station_index
+  // one is cmd.from/cmd.to; the other is mid_station
+  int train_num_in_vector;
+  // the train's index in trains_f/trains_t
+  Instant departure, arrival;
+  // departure.dateOverflow() should be 0
+  Date begin, end;
+  // for vFrom: available date for ixFrom
+  // for vTo: should all be cmd.date
+};
+
+bool cmp_f(const KeySection & r1, const KeySection & r2){
+  return r1.arrival < r2.arrival;
+}
+
+bool cmp_t(const KeySection & r1, const KeySection & r2){
+  return r1.departure < r2.departure;
+}
+
 auto command::run (const command::QueryTransfer &cmd)
   -> Result<Response, Exception> {
   using TrainId = int;
-
-  Range::sort = cmd.sort;
 
   auto v_f = Train::ixStop.findMany( std::hash<std::string>()(cmd.from) );
   auto v_t = Train::ixStop.findMany( std::hash<std::string>()(cmd.to) );
@@ -207,40 +228,16 @@ auto command::run (const command::QueryTransfer &cmd)
   Map<size_t, int> mp;// station::Id.hash() -> mid_st_no;
   Vector<KeySection> vFrom, vTo;
 
-  for(int i = 0; i < v_f.size(); ++ i){
-    trains_f.push_back(Train::get(v_f[i]));
-    const Train &train = trains_f.back();
-    int ixk = train.indexOfStop(cmd.from);
+  // TODO: get Vector<KeySection> vFrom, vTo;
 
-    if( ! train.getRide( cmd.date, ixk)) continue;
+  sort(vFrom.begin(), vFrom.end(), cmp_f);
+  sort(vTo.begin(), vTo.end(), cmp_t);
 
-    KeySection it;
-    it.ixFrom = ixk;
-    it.train_num_in_vector = i;
-    // TODO: set its it.departure(overflow = 0)
-    it.begin = it.end = cmd.date;
+  // how to set the compare function
+  Map< >mp;
 
-
-    for(int j = ixk + 1; j < train.stops.size(); j++) {
-      it.ixTo = j;
-      it.arrival = it.departure +
-        (train.edges[j - 1].arrival - train.edges[ixk].departure);
-      vFrom.push_back(it);
-    }
+  for(auto &ele: vTo){
   }
-
-
-  for(int i = 0; i < v_t.size(); ++ i){
-    trains_t.push_back(Train::get(v_t[i]));
-    const Train &train = trains_t.back();
-    int ixk = train.indexOfStop(cmd.to);
-
-    KeySection it;
-    it.ixTo = ixk;
-    it.train_num_in_vector = i;
-    it.departure =
-  }
-
 }
 
 auto rollback::run (const rollback::AddTrain &log)
