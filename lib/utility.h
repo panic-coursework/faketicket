@@ -90,6 +90,8 @@ class Triple {
 template <typename Lt>
 class Cmp {
  public:
+  Cmp () = default;
+  Cmp (const Lt &comparator) : lt_(comparator) {}
   template <typename T, typename U>
   auto equals (const T &lhs, const U &rhs) -> bool {
     return !lt_(lhs, rhs) && !lt_(rhs, lhs);
