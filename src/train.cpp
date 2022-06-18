@@ -91,6 +91,7 @@ auto command::run (const command::AddTrain &cmd)
 
   train.save();
   Train::ixId.insert(train);
+  rollback::log(rollback::AddTrain { train.id() });
 
   return unit;
 }
@@ -102,6 +103,7 @@ auto command::run (const command::DeleteTrain &cmd)
   tr -> deleted = true;
   tr -> update();
   Train::ixId.remove(*tr);
+  rollback::log(rollback::DeleteTrain { tr->id() });
 
   return unit;
 }
@@ -128,6 +130,9 @@ auto command::run (const command::ReleaseTrain &cmd)
     rd.save();
     RideSeats :: ixRide.insert(rd);
   }
+
+  rollback::log(rollback::ReleaseTrain { tr->id() });
+
   return unit;
 }
 auto command::run (const command::QueryTrain &cmd)
@@ -221,15 +226,30 @@ auto command::run (const command::QueryTransfer &cmd)
 
 auto rollback::run (const rollback::AddTrain &log)
   -> Result<Unit, Exception> {
-  // TODO
+  Train::get(log.id).destroy();
+  return unit;
 }
 auto rollback::run (const rollback::DeleteTrain &log)
   -> Result<Unit, Exception> {
-  // TODO
+  auto train = Train::get(log.id);
+  train.deleted = false;
+  train.update();
+  Train::ixId.insert(train);
+  return unit;
 }
 auto rollback::run (const rollback::ReleaseTrain &log)
   -> Result<Unit, Exception> {
-  // TODO
+  auto train = Train::get(log.id);
+  train.released = false;
+  train.update();
+
+  Train::ixStop.remove(train.trainId.hash(), train.id());
+  for (auto i = train.begin; i != train.end; ++i) {
+    auto ride = RideSeats::ixRide.findOne({ log.id, i });
+    ride->destroy();
+  }
+
+  return unit;
 }
 
 void Range::output()const{
