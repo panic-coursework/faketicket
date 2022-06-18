@@ -123,6 +123,10 @@ auto Instant::minute () const -> int {
   return dhmFromMinutes(minutes_).third;
 }
 
+auto Instant::withoutOverflow () const -> Instant {
+  return Instant(minutes_ % (kMinutesInHour * kHoursInDay));
+}
+
 Instant::operator std::string () const {
   char buf[kSzFormat];
   auto [ _, hours, minutes ] = dhmFromMinutes(minutes_);
