@@ -129,8 +129,8 @@ struct Range{
 
 struct KeySection{
   int ixFrom, ixTo;
-  Train * ptrain;
-  Instant departure, arrival;
+  int train_num_in_vector;
+  Instant departure, arrival; // based on cmd.date
   Date begin, end;
 };
 

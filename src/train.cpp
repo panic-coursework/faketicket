@@ -203,20 +203,44 @@ auto command::run (const command::QueryTransfer &cmd)
 
   Vector<Train> trains_f, trains_t;
   int mid_st_no = 0;
-  Map<size_t, int> mp;// station::Id.hash() -> mid_st_no;
 
-  for(auto &ele: v_f){
-    trains_f.push_back(Train::get(ele));
+  Map<size_t, int> mp;// station::Id.hash() -> mid_st_no;
+  Vector<KeySection> vFrom, vTo;
+
+  for(int i = 0; i < v_f.size(); ++ i){
+    trains_f.push_back(Train::get(v_f[i]));
     const Train &train = trains_f.back();
     int ixk = train.indexOfStop(cmd.from);
 
+    if( ! train.getRide( cmd.date, ixk)) continue;
+
+    KeySection it;
+    it.ixFrom = ixk;
+    it.train_num_in_vector = i;
+    // TODO: set its it.departure(overflow = 0)
+    it.begin = it.end = cmd.date;
 
 
+    for(int j = ixk + 1; j < train.stops.size(); j++) {
+      it.ixTo = j;
+      it.arrival = it.departure +
+        (train.edges[j - 1].arrival - train.edges[ixk].departure);
+      vFrom.push_back(it);
+    }
   }
-  for(auto &ele: v_t){
-    trains_t.push_back(Train::get(ele));
+
+
+  for(int i = 0; i < v_t.size(); ++ i){
+    trains_t.push_back(Train::get(v_t[i]));
     const Train &train = trains_t.back();
+    int ixk = train.indexOfStop(cmd.to);
+
+    KeySection it;
+    it.ixTo = ixk;
+    it.train_num_in_vector = i;
+    it.departure =
   }
+
 }
 
 auto rollback::run (const rollback::AddTrain &log)
