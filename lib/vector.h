@@ -181,6 +181,7 @@ class Vector {
   auto operator= (const Vector &other) -> Vector & {
     if (this == &other) return *this;
     clear();
+    if (other.empty()) return *this;
     grow_(other.capacity_);
     size_ = other.size_;
     copyContents_(storage_, other.storage_, size_);

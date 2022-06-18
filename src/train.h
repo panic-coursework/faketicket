@@ -136,6 +136,7 @@ struct Range{
 struct Section{
   using Id = file::Varchar<20>;
   Id trainId;
+  int trainPos;
   int trainNum, ixKey, ixMid;
   Instant Departure, Arrival;// all based on cmd.date
   long long totalPrice;
@@ -194,7 +195,7 @@ struct Sol{
   }
   void output()const{
     Range tmp;
-    Train train = Train::get(from_mid.trainNum);
+    Train train = Train::get(from_mid.trainPos);
     tmp.rd = *train.getRide(date, from_mid.ixKey);
     tmp.ixFrom = from_mid.ixKey;
     tmp.ixTo = from_mid.ixMid;
@@ -205,8 +206,8 @@ struct Sol{
 
     tmp.output();
 
-    train = Train::get(mid_to.trainNum);
-    tmp.rd = *train.getRide(date + mid_to.Departure.daysOverflow(), from_mid.ixMid);
+    train = Train::get(mid_to.trainPos);
+    tmp.rd = *train.getRide(date + mid_to.Departure.daysOverflow(), mid_to.ixMid);
     tmp.ixFrom = mid_to.ixMid;
     tmp.ixTo = mid_to.ixKey;
     tmp.totalPrice = mid_to.totalPrice;

@@ -5,14 +5,12 @@
 #include "hashmap.h"
 #include "map.h"
 #include "parser.h"
+#include "priority-queue.h"
 #include "response.h"
 #include "run.h"
 #include "rollback.h"
 #include "utility.h"
 #include "vector.h"
-#include <cstddef>
-#include <queue>
-#include <sys/_types/_key_t.h>
 
 namespace ticket {
 
@@ -206,21 +204,41 @@ auto command::run (const command::QueryTicket &cmd)
 }
 
 
-bool cmp_ar(const Section &s1, const Section &s2){
-  return s1.Arrival.withoutOverflow() < s2.Arrival.withoutOverflow();
-}
-bool cmp_de(const Section &s1, const Section &s2){
-  return s1.Departure.withoutOverflow() < s2.Departure.withoutOverflow();
-}
+struct SectionCmp {
+  using Pair = std::pair<Section, Section *>;
+  command::SortType type;
+  auto operator() (const Pair &lhs, const Pair &rhs) const
+    -> bool {
+    //  cmd.sort == kTime: smaller section.Departure, section.totalPrice, section.trainID
+    //  cmd.sort == kCost: smaller section.totalPrice, section.Departure, section.trainID
+    if (type == command::kCost) {
+      if (lhs.first.totalPrice != rhs.first.totalPrice) {
+        return lhs.first.totalPrice < rhs.first.totalPrice;
+      }
+    }
+    if (lhs.first.Departure != rhs.first.Departure) {
+      return lhs.first.Departure < rhs.first.Departure;
+    }
+    if (type == command::kTime) {
+      if (lhs.first.totalPrice != rhs.first.totalPrice) {
+        return lhs.first.totalPrice < rhs.first.totalPrice;
+      }
+    }
+    return lhs.first.trainId < rhs.first.trainId;
+  }
+};
 
+command::SortType Sol::sort;
 auto command::run (const command::QueryTransfer &cmd)
   -> Result<Response, Exception> {
     Sol::sort = cmd.sort;
   ////////////////////////////////////////////////////////////////
   // generate: Vector< Vector<Section> > Vf, Vt;
   int _no_st = 0;
-  Map<size_t, int > no_st;
+  HashMap<size_t, int > no_st;
   Vector< Vector<Section> > Vf, Vt;
+  Vf.push_back({});
+  Vt.push_back({});
 
   auto vTrainNum_From =
     Train::ixStop.findMany( std::hash<std::string>()(cmd.from) );
@@ -239,7 +257,9 @@ auto command::run (const command::QueryTransfer &cmd)
     Section it;
     it.trainId = train.trainId;
     it.trainNum = i;
-    it.ixKey = train.indexOfStop(cmd.from);
+    it.trainPos = train.id();
+    it.ixKey = *train.indexOfStop(cmd.from);
+    if (it.ixKey == train.stops.length - 1) continue;
     it.Departure =
       train.edges[ it.ixKey ].arrival.withoutOverflow();
     if( ! train.getRide( cmd.date, it.ixKey) ) continue;
@@ -251,10 +271,14 @@ auto command::run (const command::QueryTransfer &cmd)
       add_price += train.edges[j - 1].price;
 
       int &st_num = no_st[ std::hash<std::string>()(train.stops[j])];
-      if( ! st_num ) st_num = ++ _no_st;
+      if( ! st_num ) {
+        st_num = ++ _no_st;
+        Vf.push_back({});
+        Vt.push_back({});
+      }
       it.ixMid = j;
       it.Arrival = train.edges[j - 1].arrival
-        - (train.edges[it.ixKey].departure
+        - (train.edges[it.ixKey - 1].departure
         - it.Departure);
       it.totalPrice = add_price;
       Vf[st_num].push_back(it);
@@ -267,7 +291,9 @@ auto command::run (const command::QueryTransfer &cmd)
     Section it;
     it.trainId = train.trainId;
     it.trainNum = i;
-    it.ixKey = train.indexOfStop(cmd.to);
+    it.trainPos = train.id();
+    it.ixKey = *train.indexOfStop(cmd.to);
+    if (it.ixKey == 0) continue;
     it.Arrival = train.edges[it.ixKey - 1].arrival
       + Duration( (train.begin - cmd.date) * 24 * 60) ;
     // TO BE CHECKED
@@ -276,13 +302,17 @@ auto command::run (const command::QueryTransfer &cmd)
     for(int j = 0; j < it.ixKey; ++ j){
       add_price += train.edges[j].price;
       int &st_num = no_st[ std::hash<std::string>()(train.stops[j])];
-      if( ! st_num ) st_num = ++ _no_st;
+      if( ! st_num ) {
+        st_num = ++ _no_st;
+        Vf.push_back({});
+        Vt.push_back({});
+      }
 
       it.res = train.end - train.begin;
       it.ixMid = j;
       it.Departure = it.Arrival
         +(train.edges[j].departure
-        - train.edges[ it.ixKey ].arrival);
+        - train.edges[ it.ixKey - 1 ].arrival);
       // TO BE CHECKED: can Duration be negative?
       it.totalPrice = add_price;
 
@@ -302,16 +332,19 @@ auto command::run (const command::QueryTransfer &cmd)
   Sol ANS(cmd.date);
   for(int i = 1; i <= _no_st; ++ i){
     if( Vf[i].empty() || Vt[i].empty()) continue;
-    sort(Vf[i].begin(), Vf[i].end(), cmp_ar);
-    sort(Vt[i].begin(), Vt[i].end(), cmp_de);
+    sort(Vf[i].begin(), Vf[i].end(), Cmp([] (const Section &s1, const Section &s2) {
+      return s1.Arrival.withoutOverflow() < s2.Arrival.withoutOverflow();
+    }));
+    sort(Vt[i].begin(), Vt[i].end(), Cmp([] (const Section &s1, const Section &s2) {
+      return s1.Departure.withoutOverflow() < s2.Departure.withoutOverflow();
+    }));
 
-    std::priority_queue<std::pair<Section, Section *> > queue;
+    SectionCmp cmp {cmd.sort};
+    PriorityQueue<std::pair<Section, Section *>, SectionCmp>
+      queue(cmp);
     // first: section value when add
     // second: pointer to the real section
     for( ; ! queue.empty(); ) queue.pop();
-    // TO DO: reset priority( smaller Instant prioritized )
-    //  cmd.sort == kTime: smaller section.Departure, section.totalPrice, section.trainID
-    //  cmd.sort == kCost: smaller section.totalPrice, section.Departure, section.trainID
     for(auto &sec: Vt[i])
       queue.push(std::make_pair( sec, &sec));
 
@@ -335,7 +368,10 @@ auto command::run (const command::QueryTransfer &cmd)
         break;
       }
       Sol nw( cmd.date, Vf[i][j], *ans);
-      if( ANS.empty() || nw < ANS ) ANS = nw;
+      // cannot transfer to the same train
+      bool sameTrain
+        = nw.from_mid.trainPos == nw.mid_to.trainPos;
+      if( !sameTrain && ANS.empty() || nw < ANS ) ANS = nw;
     }
   }
   ////////////////////////////////////////////////////////////////

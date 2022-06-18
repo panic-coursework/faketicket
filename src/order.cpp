@@ -124,12 +124,14 @@ auto command::run (const command::RefundTicket &cmd)
   log.status = order.status;
   rollback::log(log);
 
+  auto statusOriginal = order.status;
+
   order.status = Order::kRefunded;
   order.update();
 
   // deleting a pending order does not need to check other
   // pending orders.
-  if (order.status == Order::kPending) {
+  if (statusOriginal == Order::kPending) {
     Order::pendingOrders.remove(order);
     return unit;
   }
@@ -139,6 +141,11 @@ auto command::run (const command::RefundTicket &cmd)
 
   // ok, let's check for other pending orders.
   auto pending = Order::pendingOrders.findMany(order.ride);
+  // sort(pending.begin(), pending.end(), Cmp(
+  //   [] (const Order &lhs, const Order &rhs) {
+  //     return lhs.id() < rhs.id();
+  //   }
+  // ));
   // TODO(perf): speed up the for loop (RMQ?)
   for (auto &target : pending) {
     auto max =
