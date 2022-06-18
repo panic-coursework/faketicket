@@ -183,11 +183,7 @@ auto command::run (const command::QueryTransfer &cmd)
   auto v_from = Train::ixStop.findMany( std::hash<std::string>()(cmd.from) );
   auto v_to = Train::ixStop.findMany( std::hash<std::string>()(cmd.to) );
   
-  struct sol{
-    
-  }
-  
-  HashMap< StationName, TrainId> map();
+  HashMap< StationName, Range> map();
 
   for(auto &ele:v_from){
     Train train = Train::get(ele);
@@ -195,7 +191,7 @@ auto command::run (const command::QueryTransfer &cmd)
     auto rd = train.getRide( cmd.date, no);
     if( ! rd ) continue;
 
-    for(int i = no; i < train.)
+    
   }
 }
 
