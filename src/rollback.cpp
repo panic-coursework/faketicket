@@ -1,5 +1,6 @@
 #include "rollback.h"
 
+#include "exception.h"
 #include "parser.h"
 #include "run.h"
 
@@ -21,7 +22,27 @@ auto rollback::log (
 
 auto command::run (const command::Rollback &cmd)
   -> Result<Response, Exception> {
-  // TODO
+  if (cmd.timestamp > currentTime) {
+    return Exception("rollback target is in the future");
+  }
+
+  User::clearSessions();
+
+  int lastId = rollback::LogEntry::file.getMeta().id;
+  while (true) {
+    auto entry = rollback::LogEntry::get(lastId--);
+    if (entry.timestamp <= cmd.timestamp) break;
+    entry.content.visit([] (const auto &cmd) {
+      auto res = rollback::run(cmd);
+      if (auto err = res.error()) {
+        // There must be something going unwildly wrong.
+        throw *err;
+      }
+    });
+    entry.destroy();
+  }
+  rollback::LogEntry::file.setMeta({ lastId });
+  return unit;
 }
 
 } // namespace ticket
