@@ -41,29 +41,29 @@ auto cout (const Vector<Order> &orders) -> void {
       << formatDateTime(date, cache.timeDeparture) << " -> "
       << cache.to.str() << ' '
       << formatDateTime(date, cache.timeArrival) << ' '
-      << order.getSubTotal() << ' '
+      << order.price << ' '
       << order.seats << '\n';
   }
 }
 /**
   * output format:
-  *  <departure[i] formatDateTime>' '<price[i]>' '<seats[i]>'\n' 
+  *  <departure[i] formatDateTime>' '<price[i]>' '<seats[i]>'\n'
   *<stations[i+1]>' '<<arrival[i] formatDateTime>"-> "
 */
 auto cout (const RideSeats &rd) -> void{
   Train train = Train::get( rd.ride.train );
   std::cout << train.trainId << ' ' << train.type << '\n';
-  
-  // from 
+
+  // from
   std::cout << train.stops[0] << " xx-xx xx:xx -> ";
 
   long long tot_price = 0;
   for(int i = 0; i < train.edges.size(); ++ i){
-    std :: cout << 
+    std :: cout <<
     formatDateTime( rd.ride.date, train.edges[i].departure )
     << ' ' << tot_price << ' ' << rd.seatsRemaining[i] <<'\n'
-    << train.stops[i + 1] << ' ' << 
-    formatDateTime( rd.ride.date, train.edges[i + 1].arrival )
+    << train.stops[i + 1] << ' ' <<
+    formatDateTime( rd.ride.date, train.edges[i].arrival )
     << " -> ";
 
     tot_price += train.edges[i].price;

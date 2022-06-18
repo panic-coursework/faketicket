@@ -20,7 +20,6 @@ using Response = Variant<
   BuyTicketResponse,
   Vector<Order>,
   RideSeats,
-  Vector<Train>,
   Vector<Range>
   // the exit command does not need a response object.
 >;
