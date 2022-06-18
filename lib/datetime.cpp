@@ -25,7 +25,7 @@ auto setNumbers (char *str, int a, int b, char sep) -> void {
   str[5] = '\0';
 }
 
-constexpr int daysInYear[] = { 0, 30, 61 };
+constexpr int daysInYear[] = { 0, 30, 61, 92 };
 constexpr int kMonthBase = 6;
 constexpr int kMonthMax = 8;
 auto daysFromMd (int month, int date) -> int {
@@ -35,9 +35,12 @@ auto daysFromMd (int month, int date) -> int {
 }
 auto mdFromDays (int days) -> Pair<int, int> {
   // simplifying the process since there is only 3 months.
-  static_assert(sizeof(daysInYear) / sizeof(daysInYear[0]) == 3);
+  static_assert(sizeof(daysInYear) / sizeof(daysInYear[0]) == 4);
   if (days >= daysInYear[1]) {
     if (days >= daysInYear[2]) {
+      if (days >= daysInYear[3]) {
+        return { kMonthBase + 3, days - daysInYear[3] + 1 };
+      }
       return { kMonthBase + 2, days - daysInYear[2] + 1 };
     }
     return { kMonthBase + 1, days - daysInYear[1] + 1 };
