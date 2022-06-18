@@ -83,6 +83,7 @@ struct Ride {
   auto operator< (const Ride &rhs) const -> bool;
 };
 
+struct Range;
 struct RideSeatsBase {
   Ride ride;
   file::Array<int, 99> seatsRemaining;// maintain it
@@ -108,6 +109,8 @@ struct RideSeats : public file::Managed<RideSeatsBase> {
 struct Range{
   using Id = file::Varchar<20>;
 
+  static command::SortType sort;
+
   RideSeats rd;
   int ixFrom, ixTo;
   long long totalPrice;
@@ -115,13 +118,20 @@ struct Range{
   int seats;
   Id trainId;
 
-  Range() = default;
+  Range(): ixFrom(-1), ixTo(-1){};
   Range(RideSeats _rd, int _ixFrom, int _ixTo
   , long long _totalPrice, Duration _time,int _seats, Id _id):
    rd(_rd), ixFrom(_ixFrom), ixTo(_ixTo),
    totalPrice(_totalPrice), time(_time), seats(_seats),trainId(_id){};
-  
+
   void output()const;
+};
+
+struct KeySection{
+  int ixFrom, ixTo;
+  Train * ptrain;
+  Instant departure, arrival;
+  Date begin, end;
 };
 
 } // namespace ticket

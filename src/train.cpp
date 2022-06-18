@@ -3,12 +3,14 @@
 #include "datetime.h"
 #include "exception.h"
 #include "hashmap.h"
+#include "map.h"
 #include "parser.h"
 #include "run.h"
 #include "rollback.h"
 #include "utility.h"
 #include "vector.h"
 #include <functional>
+#include <nl_types.h>
 
 namespace ticket {
 
@@ -194,21 +196,28 @@ auto command::run (const command::QueryTicket &cmd)
 }
 auto command::run (const command::QueryTransfer &cmd)
   -> Result<Response, Exception> {
-  using StationName = file::Varchar<30>;
   using TrainId = int;
 
-  auto v_from = Train::ixStop.findMany( std::hash<std::string>()(cmd.from) );
-  auto v_to = Train::ixStop.findMany( std::hash<std::string>()(cmd.to) );
+  Range::sort = cmd.sort;
 
-  HashMap< StationName, Range> map();
+  auto v_f = Train::ixStop.findMany( std::hash<std::string>()(cmd.from) );
+  auto v_t = Train::ixStop.findMany( std::hash<std::string>()(cmd.to) );
 
-  for(auto &ele:v_from){
-    Train train = Train::get(ele);
-    int no = train.indexOfStop(cmd.from);
-    auto rd = train.getRide( cmd.date, no);
-    if( ! rd ) continue;
+  Vector<Train> trains_f, trains_t;
+  int mid_st_no = 0;
+  Map<size_t, int> mp;// station::Id.hash() -> mid_st_no;
+
+  for(auto &ele: v_f){
+    trains_f.push_back(Train::get(ele));
+    const Train &train = trains_f.back();
+    int ixk = train.indexOfStop(cmd.from);
 
 
+
+  }
+  for(auto &ele: v_t){
+    trains_t.push_back(Train::get(ele));
+    const Train &train = trains_t.back();
   }
 }
 
