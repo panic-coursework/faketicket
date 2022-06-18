@@ -132,9 +132,16 @@ auto command::run (const command::QueryTrain &cmd)
   -> Result<Response, Exception> {
   auto train = Train::ixId.findOne(cmd.id);
   if( ! train ) return Exception("No such train");
+  if( cmd.date < train->begin || cmd.date > train->end ) return Exception("No such ride");
+
   auto ride = train->getRide( cmd.date);
   if( ! ride ){
-    return Exception("No such ride");
+    RideSeats nw;
+    nw.ride = { train->id(), cmd.date };
+    for(int i = 0; i < train->edges.size(); ++ i)
+      nw.seatsRemaining.push( train->seats);
+
+    return nw;
   }
 
   return ride;
@@ -142,18 +149,17 @@ auto command::run (const command::QueryTrain &cmd)
 auto command::run (const command::QueryTicket &cmd)
   -> Result<Response, Exception> {
   Vector<Range> vct;
-  vct.clear();
   auto v_from = Train::ixStop.findMany( std::hash<std::string>()(cmd.from) );
   auto v_to = Train::ixStop.findMany( std::hash<std::string>()(cmd.to) );
 
   for(auto ele: v_to)
     v_from.push_back(ele);
 
-  Train train;
   sort( v_from.begin(), v_from.end() );
-  v_from.push_back(0);// for bound
+  v_from.push_back(-1);// for bound
   for(int i = 1; i + 1 < v_from.size(); ++ i)
     if( v_from[i] == v_from[i - 1] && v_from[i] != v_from[i + 1] ){
+      Train train;
       train = Train::get(v_from[i]);
       auto ixFrom = train.indexOfStop(cmd.from);
       auto ixTo = train.indexOfStop(cmd.to);
@@ -162,12 +168,10 @@ auto command::run (const command::QueryTicket &cmd)
       auto rd = train.getRide( cmd.date, ixFrom);
       if( ! rd ) continue;
 
-      long long totPrice = 0;
+      long long totPrice = train.totalPrice(ixFrom, ixTo);
       int seats = train.seats;
-      for(int j = ixFrom; j < ixTo; ++ j){
-        totPrice += train.edges[j].price;
+      for(int j = ixFrom; j < ixTo; ++ j)
         seats = seats < rd->seatsRemaining[i] ? seats : rd->seatsRemaining[i];
-      }
 
       vct.push_back( ticket::Range( *rd, ixFrom, ixTo,
         totPrice, train.edges[ixTo - 1].arrival - train.edges[ixFrom].departure, seats, train.trainId ) );
