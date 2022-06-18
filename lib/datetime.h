@@ -124,6 +124,7 @@ class Instant : public Comparable<Instant> {
   auto cmp (Instant rhs) const -> int {
     return minutes_ - rhs.minutes_;
   }
+  auto withoutOverflow () const -> Instant;
  private:
   explicit Instant (int minutes) : minutes_(minutes) {}
   int minutes_ = 0;
