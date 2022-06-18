@@ -9,8 +9,6 @@
 #include "rollback.h"
 #include "utility.h"
 #include "vector.h"
-#include <functional>
-#include <nl_types.h>
 
 namespace ticket {
 
@@ -88,7 +86,7 @@ auto command::run (const command::AddTrain &cmd)
   for(int i = 0; i + 1 < cmd.stations.size(); ++ i){
     train.edges.push( {cmd.prices[i], ins, ins + cmd.durations[i]} );
     ins = ins + cmd.durations[i];
-    if(i + 1 < cmd.stations.size()) ins = ins + cmd.stopoverTimes[i];
+    if(i + 2 < cmd.stations.size()) ins = ins + cmd.stopoverTimes[i];
   }
 
   train.save();
@@ -111,7 +109,9 @@ auto command::run (const command::ReleaseTrain &cmd)
   -> Result<Response, Exception> {
   auto tr = Train::ixId.findOne(cmd.id);
   if( ! tr ) return Exception("No such train");
+  if (tr->released) return Exception("already released");
   tr->released = true;
+  tr->update();
 
   const size_t cnt_dur = tr->edges.length;
   const int _seats = tr->seats;
@@ -134,7 +134,9 @@ auto command::run (const command::QueryTrain &cmd)
   -> Result<Response, Exception> {
   auto train = Train::ixId.findOne(cmd.id);
   if( ! train ) return Exception("No such train");
-  if( cmd.date < train->begin || cmd.date > train->end ) return Exception("No such ride");
+  if (!cmd.date.inRange(train->begin, train->end)) {
+    return Exception("No such ride");
+  }
 
   auto ride = train->getRide( cmd.date);
   if( ! ride ){
@@ -146,7 +148,7 @@ auto command::run (const command::QueryTrain &cmd)
     return nw;
   }
 
-  return ride;
+  return *ride;
 }
 auto command::run (const command::QueryTicket &cmd)
   -> Result<Response, Exception> {
@@ -166,17 +168,15 @@ auto command::run (const command::QueryTicket &cmd)
       auto ixFrom = train.indexOfStop(cmd.from);
       auto ixTo = train.indexOfStop(cmd.to);
 
-      if( !ixFrom || !ixTo || ixFrom > ixTo ) continue;
-      auto rd = train.getRide( cmd.date, ixFrom);
+      if( !ixFrom || !ixTo || *ixFrom > *ixTo ) continue;
+      auto rd = train.getRide( cmd.date, *ixFrom);
       if( ! rd ) continue;
 
-      long long totPrice = train.totalPrice(ixFrom, ixTo);
-      int seats = train.seats;
-      for(int j = ixFrom; j < ixTo; ++ j)
-        seats = seats < rd->seatsRemaining[i] ? seats : rd->seatsRemaining[i];
+      long long totPrice = train.totalPrice(*ixFrom, *ixTo);
+      auto seats = rd->ticketsAvailable(*ixFrom, *ixTo);
 
-      vct.push_back( ticket::Range( *rd, ixFrom, ixTo,
-        totPrice, train.edges[ixTo - 1].arrival - train.edges[ixFrom].departure, seats, train.trainId ) );
+      vct.push_back( ticket::Range( *rd, *ixFrom, *ixTo,
+        totPrice, train.edges[*ixTo - 1].arrival - train.edges[*ixFrom].departure, seats, train.trainId ) );
     }
 
   sort( vct.begin(), vct.end(), Cmp(
@@ -185,10 +185,8 @@ auto command::run (const command::QueryTicket &cmd)
         if( r1.time != r2.time) return  r1.time < r2.time;
         return r1.trainId < r2.trainId;
       }
-      else{
-        if( r1.totalPrice != r2.totalPrice) return  r1.totalPrice < r2.totalPrice;
-        return r1.trainId < r2.trainId;
-      }
+      if( r1.totalPrice != r2.totalPrice) return  r1.totalPrice < r2.totalPrice;
+      return r1.trainId < r2.trainId;
     }
   )
   );
@@ -239,15 +237,13 @@ void Range::output()const{
   std::cout <<
     tr.trainId << ' ' <<
     tr.stops[ixFrom] << ' '<<
-    formatDateTime(tr.begin, tr.edges[ixFrom].departure) << ' '<<
+    formatDateTime(rd.ride.date, tr.edges[ixFrom].departure) << ' '<<
+    "-> " <<
     tr.stops[ixTo] << ' ' <<
-    formatDateTime(tr.begin, tr.edges[ixTo].arrival) << ' '<<
+    formatDateTime(rd.ride.date, tr.edges[ixTo - 1].arrival) << ' '<<
     tr.totalPrice(ixFrom, ixTo) << ' ';
 
-  int sts = tr.seats;
-  for(int i = ixFrom; i <= ixTo; ++ i)
-    sts =  sts < (rd.seatsRemaining[i]) ? sts : (rd.seatsRemaining[i]);
-  std::cout << sts << std::endl;
+  std::cout << rd.ticketsAvailable(ixFrom, ixTo) << std::endl;
 }
 
 } // namespace ticket
