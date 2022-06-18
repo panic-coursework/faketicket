@@ -5,11 +5,13 @@
 #include "hashmap.h"
 #include "map.h"
 #include "parser.h"
+#include "response.h"
 #include "run.h"
 #include "rollback.h"
 #include "utility.h"
 #include "vector.h"
 #include <cstddef>
+#include <queue>
 #include <sys/_types/_key_t.h>
 
 namespace ticket {
@@ -198,20 +200,17 @@ auto command::run (const command::QueryTicket &cmd)
   return vct;
 }
 
-struct Section{
-  using Id = file::Varchar<20>;
-  Id trainId;
-  int trainNum, ixKey, ixMid;
-  Instant Departure, Arrival;// all based on cmd.date
-  // Departure.daysOverflow() = 0
-  int res;// Just for midSt->To
-  //init: res = train.end - train.begin
 
-  Section(): trainNum(-1){}
-};
+bool cmp_ar(const Section &s1, const Section &s2){
+  return s1.Arrival.withoutOverflow() < s2.Arrival.withoutOverflow();
+}
+bool cmp_de(const Section &s1, const Section &s2){
+  return s1.Departure.withoutOverflow() < s2.Departure.withoutOverflow();
+}
 
 auto command::run (const command::QueryTransfer &cmd)
   -> Result<Response, Exception> {
+    Sol::sort = cmd.sort;
   ////////////////////////////////////////////////////////////////
   // generate: Vector< Vector<Section> > Vf, Vt;
   int _no_st = 0;
@@ -242,16 +241,17 @@ auto command::run (const command::QueryTransfer &cmd)
 
     //get st_num
 
-
+    long long add_price = 0;
     for(int j = it.ixKey + 1; j < train.stops.size(); ++ j){
+      add_price += train.edges[j - 1].price;
+
       int &st_num = no_st[ std::hash<std::string>()(train.stops[j])];
       if( ! st_num ) st_num = ++ _no_st;
-
       it.ixMid = j;
       it.Arrival = train.edges[j - 1].arrival
         - (train.edges[it.ixKey].departure
         - it.Departure);
-
+      it.totalPrice = add_price;
       Vf[st_num].push_back(it);
     }
   }
@@ -267,7 +267,9 @@ auto command::run (const command::QueryTransfer &cmd)
       + Duration( (train.begin - cmd.date) * 24 * 60) ;
     // TO BE CHECKED
 
+    long long add_price = 0;
     for(int j = 0; j < it.ixKey; ++ j){
+      add_price += train.edges[j].price;
       int &st_num = no_st[ std::hash<std::string>()(train.stops[j])];
       if( ! st_num ) st_num = ++ _no_st;
 
@@ -277,6 +279,7 @@ auto command::run (const command::QueryTransfer &cmd)
         +(train.edges[j].departure
         - train.edges[ it.ixKey ].arrival);
       // TO BE CHECKED: can Duration be negative?
+      it.totalPrice = add_price;
 
       //Section validity check
       for(; it.res && it.Departure.daysOverflow() < 0;){
@@ -288,16 +291,50 @@ auto command::run (const command::QueryTransfer &cmd)
       if( it.Departure.daysOverflow() < 0) continue;
       Vt[st_num].push_back(it);
     }
-
-
-
-
-
   }
   ////////////////////////////////////////////////////////////////
-  // get Section from_mid, mid_to;
-  Section from_mid, mid_to;
+  // get ANS;
+  Sol ANS(cmd.date);
+  for(int i = 1; i <= _no_st; ++ i){
+    if( Vf[i].empty() || Vt[i].empty()) continue;
+    sort(Vf[i].begin(), Vf[i].end(), cmp_ar);
+    sort(Vt[i].begin(), Vt[i].end(), cmp_de);
 
+    std::priority_queue<std::pair<Section, Section *> > queue;
+    // first: section value when add
+    // second: pointer to the real section
+    for( ; ! queue.empty(); ) queue.pop();
+    // TO DO: reset priority( smaller Instant prioritized )
+    //  cmd.sort == kTime: smaller section.Departure, section.totalPrice, section.trainID
+    //  cmd.sort == kCost: smaller section.totalPrice, section.Departure, section.trainID
+    for(auto &sec: Vt[i])
+      queue.push(std::make_pair( sec, &sec));
+
+    int mover = 0;
+    Section * _mid_to = nullptr;
+    for(int j = 0; j < Vf[i].size(); ++ j){
+      for(; mover + 1 < Vt[i].size()
+        && Vt[i][mover].Departure < Vf[i][j].Arrival;){
+          if( Vt[i][mover].res ) Vt[i][mover].move_to_tomorrow();
+          else Vt[i][mover].deleted = true;
+        }
+
+      Section * ans = nullptr;
+      for(;! queue.empty() ;){
+        auto hd = queue.top();
+        queue.pop();
+
+        if( hd.second->deleted || (*hd.second) != hd.first)
+          continue;
+        ans = hd.second;
+        break;
+      }
+      Sol nw( cmd.date, Vf[i][j], *ans);
+      if( ANS.empty() || nw < ANS ) ANS = nw;
+    }
+  }
+  ////////////////////////////////////////////////////////////////
+  return ANS;
 
 }
 

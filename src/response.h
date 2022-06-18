@@ -40,6 +40,7 @@ auto cout (const BuyTicketResponse &ticket) -> void;
 auto cout (const Vector<Order> &orders) -> void;
 auto cout (const RideSeats &rd) -> void;// for "QueryTrain"
 auto cout (const Vector<Range> & ranges) -> void;// for "QueryTicket"
+auto cout (const Sol & sol) -> void;// for "QueryTransfer"
 
 #ifdef BUILD_NODEJS
 

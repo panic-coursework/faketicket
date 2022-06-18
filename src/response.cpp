@@ -76,7 +76,13 @@ auto cout (const Vector<Range> & ranges) -> void{
   for(auto &ele: ranges)
     ele.output();
 }
-
+auto cout (const Sol & sol) -> void{
+  if(sol.empty()){
+    std::cout << "0\n";
+    return ;
+  }
+  sol.output();
+}
 
 
 #ifdef BUILD_NODEJS

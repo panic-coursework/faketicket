@@ -118,6 +118,12 @@ struct Range{
   int seats;
   Id trainId;
 
+  void calc_seats(){
+    seats = rd.seatsRemaining[ixFrom];
+    for(int i = ixFrom; i < ixTo; ++ i)
+      seats = seats < rd.seatsRemaining[i] ? seats : rd.seatsRemaining[i];
+  }
+
   Range(): ixFrom(-1), ixTo(-1){};
   Range(RideSeats _rd, int _ixFrom, int _ixTo
   , long long _totalPrice, Duration _time,int _seats, Id _id):
@@ -125,6 +131,92 @@ struct Range{
    totalPrice(_totalPrice), time(_time), seats(_seats),trainId(_id){};
 
   void output()const;
+};
+
+struct Section{
+  using Id = file::Varchar<20>;
+  Id trainId;
+  int trainNum, ixKey, ixMid;
+  Instant Departure, Arrival;// all based on cmd.date
+  long long totalPrice;
+  // Departure.daysOverflow() = 0
+  int res;// Just for midSt->To
+  //init: res = train.end - train.begin
+
+  bool deleted;
+
+  Section(): trainNum(-1), deleted(false){}
+  bool operator !=(const Section& other) const{
+    return Departure != other.Departure
+      || Arrival != other.Arrival
+      || totalPrice != other.totalPrice;
+  }
+  bool move_to_tomorrow(){
+    if( res <= 0 ) return false;
+    -- res;
+    Departure = Departure + Duration(24 * 60);
+    Arrival = Arrival + Duration(24 * 60);
+    return true;
+  }
+
+  void output()const{
+
+    // TO DO
+  }
+};
+
+struct Sol{
+  static command::SortType sort;
+  Section from_mid, mid_to;
+  Date date;
+  Sol(const Date &dt): date(dt){};
+  Sol(const Date &dt, const Section &from, const Section &to):
+    date(dt),from_mid(from), mid_to(to) {}
+  long long price()const{
+    return from_mid.totalPrice + mid_to.totalPrice;
+  }
+  Duration time()const{
+    return mid_to.Arrival - from_mid.Departure;
+  }
+  bool empty()const{ return from_mid.trainNum == -1;}
+  bool operator<(const Sol &rhs)const{
+    if(sort == command::kTime){
+      if( time() != rhs.time() ) return time() < rhs.time();
+      if( price() != rhs.price() ) return price() < rhs.price();
+    }
+    else{
+      if( price() != rhs.price() ) return price() < rhs.price();
+      if( time() != rhs.time() ) return time() < rhs.time();
+    }
+    if( from_mid.trainId != rhs.from_mid.trainId)
+      return from_mid.trainId < rhs.from_mid.trainId;
+    return mid_to.trainId < rhs.mid_to.trainId;
+  }
+  void output()const{
+    Range tmp;
+    Train train = Train::get(from_mid.trainNum);
+    tmp.rd = *train.getRide(date, from_mid.ixKey);
+    tmp.ixFrom = from_mid.ixKey;
+    tmp.ixTo = from_mid.ixMid;
+    tmp.totalPrice = from_mid.totalPrice;
+    tmp.time = from_mid.Arrival - from_mid.Departure;
+    tmp.calc_seats();
+    tmp.trainId = from_mid.trainId;
+
+    tmp.output();
+
+    train = Train::get(mid_to.trainNum);
+    tmp.rd = *train.getRide(date + mid_to.Departure.daysOverflow(), from_mid.ixMid);
+    tmp.ixFrom = mid_to.ixMid;
+    tmp.ixTo = mid_to.ixKey;
+    tmp.totalPrice = mid_to.totalPrice;
+    tmp.time = mid_to.Arrival - mid_to.Departure;
+    tmp.calc_seats();
+    tmp.trainId = mid_to.trainId;
+
+    tmp.output();
+
+  }
 };
 
 } // namespace ticket
