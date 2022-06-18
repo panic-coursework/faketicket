@@ -378,7 +378,7 @@ class Vector {
   static auto move_ (T &el) -> T && { return reinterpret_cast<T &&>(el); }
   static auto copyContents_ (T *to, T *from, size_t n) -> void {
     for (size_t i = 0; i < n; ++i) {
-      to[i] = from[i];
+      new(&to[i]) T(from[i]);
     }
   }
   static auto moveContents_ (T *to, T *from, size_t n) -> void {

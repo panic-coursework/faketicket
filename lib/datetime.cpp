@@ -27,7 +27,10 @@ auto setNumbers (char *str, int a, int b, char sep) -> void {
 
 constexpr int daysInYear[] = { 0, 30, 61 };
 constexpr int kMonthBase = 6;
+constexpr int kMonthMax = 8;
 auto daysFromMd (int month, int date) -> int {
+  bool notInRange = month < kMonthBase || month > kMonthMax;
+  if (notInRange) return -1;
   return daysInYear[month - kMonthBase] + date - 1;
 }
 auto mdFromDays (int days) -> Pair<int, int> {
