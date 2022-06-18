@@ -131,11 +131,11 @@ auto command::run (const command::ReleaseTrain &cmd)
 auto command::run (const command::QueryTrain &cmd)
   -> Result<Response, Exception> {
   auto train = Train::ixId.findOne(cmd.id);
-  if( ! train ){
-    return Exception("No such train");
-  } 
+  if( ! train ) return Exception("No such train");
   auto ride = train->getRide( cmd.date);
-  if( ! ride ) return Exception("No such ride");
+  if( ! ride ){
+    return Exception("No such ride");
+  }
 
   return ride;
 }
@@ -167,13 +167,25 @@ auto command::run (const command::QueryTicket &cmd)
       for(int j = ixFrom; j < ixTo; ++ j){
         totPrice += train.edges[j].price;
         seats = seats < rd->seatsRemaining[i] ? seats : rd->seatsRemaining[i];
-      } 
+      }
 
-      vct.push_back( ticket::Range( *rd, ixFrom, ixTo, 
+      vct.push_back( ticket::Range( *rd, ixFrom, ixTo,
         totPrice, train.edges[ixTo - 1].arrival - train.edges[ixFrom].departure, seats, train.trainId ) );
     }
 
-  sort( vct.begin(), vct.end(), cmp(, ,cmd.sort) );
+  sort( vct.begin(), vct.end(), Cmp(
+    [&cmd] (const Range &r1, const Range &r2) {
+      if( cmd.sort == command::kTime){
+        if( r1.time != r2.time) return  r1.time < r2.time;
+        return r1.trainId < r2.trainId;
+      }
+      else{
+        if( r1.totalPrice != r2.totalPrice) return  r1.totalPrice < r2.totalPrice;
+        return r1.trainId < r2.trainId;
+      }
+    }
+  )
+  );
   return vct;
 }
 auto command::run (const command::QueryTransfer &cmd)
@@ -183,7 +195,7 @@ auto command::run (const command::QueryTransfer &cmd)
 
   auto v_from = Train::ixStop.findMany( std::hash<std::string>()(cmd.from) );
   auto v_to = Train::ixStop.findMany( std::hash<std::string>()(cmd.to) );
-  
+
   HashMap< StationName, Range> map();
 
   for(auto &ele:v_from){
@@ -192,7 +204,7 @@ auto command::run (const command::QueryTransfer &cmd)
     auto rd = train.getRide( cmd.date, no);
     if( ! rd ) continue;
 
-    
+
   }
 }
 
@@ -211,7 +223,7 @@ auto rollback::run (const rollback::ReleaseTrain &log)
 
 void Range::output()const{
   const Train &tr = Train::get(rd.ride.train);
-  std::cout << 
+  std::cout <<
     tr.trainId << ' ' <<
     tr.stops[ixFrom] << ' '<<
     formatDateTime(tr.begin, tr.edges[ixFrom].departure) << ' '<<
@@ -224,17 +236,5 @@ void Range::output()const{
     sts =  sts < (rd.seatsRemaining[i]) ? sts : (rd.seatsRemaining[i]);
   std::cout << sts << std::endl;
 }
-
-bool cmp(const Range& r1, const Range& r2, command::SortType tp){
-  if( tp == command::kTime){
-    if( r1.time != r2.time) return  r1.time < r2.time;
-    return r1.trainId < r2.trainId;  
-  }
-  else{
-    if( r1.totalPrice != r2.totalPrice) return  r1.totalPrice < r2.totalPrice;
-    return r1.trainId < r2.trainId;
-  }
-}
-
 
 } // namespace ticket

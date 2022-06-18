@@ -124,8 +124,6 @@ struct Range{
   void output()const;
 };
 
-bool cmp(const Range& r1, const Range& r2, command::SortType tp);
-
 } // namespace ticket
 
 #endif // TICKET_TRAIN_H_
