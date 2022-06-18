@@ -9,7 +9,11 @@
 namespace ticket::response {
 
 auto cout (const Unit & /* unused */) -> void {
-  std::cout << "0\n";
+  if constexpr (isInteractive) {
+    std::cout << "success!\n";
+  } else {
+    std::cout << "0\n";
+  }
 }
 auto cout (const User &user) -> void {
   std::cout

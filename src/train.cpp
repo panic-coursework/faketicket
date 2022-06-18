@@ -4,10 +4,10 @@
 #include "exception.h"
 #include "hashmap.h"
 #include "parser.h"
+#include "run.h"
 #include "rollback.h"
 #include "utility.h"
 #include "vector.h"
-#include <algorithm>
 #include <functional>
 
 namespace ticket {
@@ -131,8 +131,9 @@ auto command::run (const command::ReleaseTrain &cmd)
 auto command::run (const command::QueryTrain &cmd)
   -> Result<Response, Exception> {
   auto train = Train::ixId.findOne(cmd.id);
-  if( ! train ) return Exception("No such train");
-
+  if( ! train ){
+    return Exception("No such train");
+  } 
   auto ride = train->getRide( cmd.date);
   if( ! ride ) return Exception("No such ride");
 
@@ -172,7 +173,7 @@ auto command::run (const command::QueryTicket &cmd)
         totPrice, train.edges[ixTo - 1].arrival - train.edges[ixFrom].departure, seats, train.trainId ) );
     }
 
-  sort( vct.begin(), vct.end(), cmp(const Range&, const Range&, cmd.sort) );
+  sort( vct.begin(), vct.end(), cmp(, ,cmd.sort) );
   return vct;
 }
 auto command::run (const command::QueryTransfer &cmd)

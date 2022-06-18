@@ -5,6 +5,7 @@
 #include "exception.h"
 #include "hashmap.h"
 #include "parser.h"
+#include "run.h"
 #include "rollback.h"
 
 namespace ticket {
