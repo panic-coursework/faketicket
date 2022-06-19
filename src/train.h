@@ -118,12 +118,6 @@ struct Range{
   int seats;
   Id trainId;
 
-  void calc_seats(){
-    seats = rd.seatsRemaining[ixFrom];
-    for(int i = ixFrom; i < ixTo; ++ i)
-      seats = seats < rd.seatsRemaining[i] ? seats : rd.seatsRemaining[i];
-  }
-
   Range(): ixFrom(-1), ixTo(-1){};
   Range(RideSeats _rd, int _ixFrom, int _ixTo
   , long long _totalPrice, Duration _time,int _seats, Id _id):
@@ -161,7 +155,9 @@ struct Section{
   }
 
   void output()const{
-
+    std::cerr << trainId << std::endl;
+    auto t = Train::get(trainPos);
+    std::cerr << t.stops[ixKey] << t.stops[ixMid] << std::endl;
     // TO DO
   }
 };
@@ -201,7 +197,6 @@ struct Sol{
     tmp.ixTo = from_mid.ixMid;
     tmp.totalPrice = from_mid.totalPrice;
     tmp.time = from_mid.Arrival - from_mid.Departure;
-    tmp.calc_seats();
     tmp.trainId = from_mid.trainId;
 
     tmp.output();
@@ -212,7 +207,6 @@ struct Sol{
     tmp.ixTo = mid_to.ixKey;
     tmp.totalPrice = mid_to.totalPrice;
     tmp.time = mid_to.Arrival - mid_to.Departure;
-    tmp.calc_seats();
     tmp.trainId = mid_to.trainId;
 
     tmp.output();
