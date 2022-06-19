@@ -7,9 +7,6 @@ interface User {
   email: string
   privilege: number
 }
-interface Train {
-  // TODO
-}
 interface BuyTicketSuccess {
   status: 'success'
   price: number
@@ -21,17 +18,52 @@ type BuyTicketResponse = BuyTicketSuccess | BuyTicketEnqueued
 interface Order {
   id: number
   trainId: string
-  from: Date
-  to: Date
+  from: string
+  to: string
+  departure: Date
+  arrival: Date
   price: number
   seats: number
   subTotal: number
+  status: 'success' | 'pending' | 'refunded'
+}
+
+interface Edge {
+  departure: Date
+  arrival: Date
+  price: number
+  seatsRemaining: number
+}
+interface RideSeats {
+  trainId: string
+  type: string
+  edges: Edge[]
+  stops: string[]
+}
+interface Range {
+  trainId: string
+  from: string
+  to: string
+  timeDeparture: Date
+  timeArrival: Date
+  price: number
+  ticketsAvailable: number
+}
+interface TransferPlanEmpty {
+  success: false
+}
+interface TransferPlan {
+  success: true
+  first: Range
+  second: Range
 }
 
 export type Response =
   Success |
   User |
-  Train |
-  Train[] |
   BuyTicketResponse |
-  Order[]
+  Order[] |
+  RideSeats |
+  Range[] |
+  TransferPlanEmpty |
+  TransferPlan

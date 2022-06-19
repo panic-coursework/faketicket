@@ -47,10 +47,11 @@ auto cout (const Sol & sol) -> void;// for "QueryTransfer"
 
 auto toJsObject (Napi::Env env, const Unit & /* unused */) -> Napi::Object;
 auto toJsObject (Napi::Env env, const User &user) -> Napi::Object;
-auto toJsObject (Napi::Env env, const Train &train) -> Napi::Object;
-auto toJsObject (Napi::Env env, const Vector<Train> &trains) -> Napi::Object;
 auto toJsObject (Napi::Env env, const BuyTicketResponse &ticket) -> Napi::Object;
 auto toJsObject (Napi::Env env, const Vector<Order> &orders) -> Napi::Object;
+auto toJsObject (Napi::Env env, const RideSeats &rd) -> Napi::Object;
+auto toJsObject (Napi::Env env, const Vector<Range> &ranges) -> Napi::Object;
+auto toJsObject (Napi::Env env, const Sol &sol) -> Napi::Object;
 
 #endif // BUILD_NODEJS
 

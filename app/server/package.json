@@ -1,0 +1,14 @@
+{
+  "name": "ticketserver",
+  "version": "0.0.0-dev",
+  "main": "index.js",
+  "author": "Alan Liang",
+  "license": "GPL-3.0",
+  "private": true,
+  "dependencies": {
+    "@koa/router": "^10.1.1",
+    "koa": "^2.13.4",
+    "koa-body": "^5.0.0",
+    "koa-static": "^5.0.0"
+  }
+}

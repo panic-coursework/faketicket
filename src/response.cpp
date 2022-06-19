@@ -110,14 +110,6 @@ auto toJsObject (Napi::Env env, const User &user)
   obj["privilege"] = JS_NUM(user.privilege);
   return obj;
 }
-auto toJsObject (Napi::Env env, const Train &train)
-  -> Napi::Object {
-  // TODO
-}
-auto toJsObject (Napi::Env env, const Vector<Train> &trains)
-  -> Napi::Object {
-  // TODO
-}
 
 auto toJsObject (
   Napi::Env env,
@@ -144,13 +136,108 @@ auto toJsObject (Napi::Env env, const Vector<Order> &orders)
     auto date = order.ride.date;
     jsOrder["id"] = JS_NUM(order.id());
     jsOrder["trainId"] = JS_STR(cache.trainId.str());
-    jsOrder["from"] = JS_DATE(date, cache.timeDeparture);
-    jsOrder["to"] = JS_DATE(date, cache.timeArrival);
+    jsOrder["from"] = JS_STR(cache.from.str());
+    jsOrder["to"] = JS_STR(cache.to.str());
+    jsOrder["departure"] = JS_DATE(date, cache.timeDeparture);
+    jsOrder["arrival"] = JS_DATE(date, cache.timeArrival);
     jsOrder["price"] = JS_NUM(order.price);
     jsOrder["seats"] = JS_NUM(order.seats);
     jsOrder["subTotal"] = JS_NUM(order.getSubTotal());
+    jsOrder["status"] = JS_STR(Order::statusString(order.status));
   }
   return arr;
+}
+
+auto toJsObject (Napi::Env env, const RideSeats &rd)
+  -> Napi::Object {
+  auto res = JS_OBJ();
+  Train train = Train::get(rd.ride.train);
+  res["trainId"] = JS_STR(train.trainId.str());
+  char type[2];
+  type[0] = train.type;
+  type[1] = '\0';
+  res["type"] = JS_STR(type);
+  auto edges = JS_ARR(train.edges.length);
+  for (int i = 0; i < train.edges.length; ++i) {
+    auto jsEdge = JS_OBJ();
+    jsEdge["departure"] =
+      JS_DATE(rd.ride.date, train.edges[i].departure);
+    jsEdge["arrival"] =
+      JS_DATE(rd.ride.date, train.edges[i].arrival);
+    jsEdge["price"] = JS_NUM(train.edges[i].price);
+    jsEdge["seatsRemaining"] = JS_NUM(rd.seatsRemaining[i]);
+    edges[i] = jsEdge;
+  }
+  res["edges"] = edges;
+  auto stops = JS_ARR(train.stops.length);
+  for (int i = 0; i < train.stops.length; ++i) {
+    stops[i] = JS_STR(train.stops[i].str());
+  }
+  res["stops"] = stops;
+  return res;
+}
+
+inline auto toJsObject (Napi::Env env, const Range &range)
+  -> Napi::Object {
+  auto res = JS_OBJ();
+  Train tr = Train::get(range.rd.ride.train);
+  res["trainId"] = JS_STR(tr.trainId.str());
+  res["from"] = JS_STR(tr.stops[range.ixFrom].str());
+  res["to"] = JS_STR(tr.stops[range.ixTo].str());
+  res["timeDeparture"] = JS_DATE(
+    range.rd.ride.date, tr.edges[range.ixFrom].departure);
+  res["timeArrival"] = JS_DATE(
+    range.rd.ride.date, tr.edges[range.ixTo - 1].arrival);
+  res["price"] =
+    tr.totalPrice(range.ixFrom, range.ixTo);
+  res["ticketsAvailable"] =
+    range.rd.ticketsAvailable(range.ixFrom, range.ixTo);
+  return res;
+}
+
+auto toJsObject (Napi::Env env, const Vector<Range> &ranges)
+  -> Napi::Object {
+  auto res = JS_ARR(0);
+  for (int i = 0; i < ranges.size(); ++i) {
+    res[i] = toJsObject(env, ranges[i]);
+  }
+  return res;
+}
+
+auto toJsObject (Napi::Env env, const Sol &sol)
+  -> Napi::Object {
+  auto res = JS_OBJ();
+  if (sol.empty()) {
+    res["success"] = Napi::Boolean::New(env, false);
+    return res;
+  }
+  res["success"] = Napi::Boolean::New(env, true);
+
+  Range tmp;
+  Train train = Train::get(sol.from_mid.trainPos);
+  tmp.rd = *train.getRide(sol.date, sol.from_mid.ixKey);
+  tmp.ixFrom = sol.from_mid.ixKey;
+  tmp.ixTo = sol.from_mid.ixMid;
+  tmp.totalPrice = sol.from_mid.totalPrice;
+  tmp.time = sol.from_mid.Arrival - sol.from_mid.Departure;
+  tmp.trainId = sol.from_mid.trainId;
+
+  res["first"] = toJsObject(env, tmp);
+
+  train = Train::get(sol.mid_to.trainPos);
+  tmp.rd = *train.getRide(
+    sol.date + sol.mid_to.Departure.daysOverflow(),
+    sol.mid_to.ixMid
+  );
+  tmp.ixFrom = sol.mid_to.ixMid;
+  tmp.ixTo = sol.mid_to.ixKey;
+  tmp.totalPrice = sol.mid_to.totalPrice;
+  tmp.time = sol.mid_to.Arrival - sol.mid_to.Departure;
+  tmp.trainId = sol.mid_to.trainId;
+
+  res["second"] = toJsObject(env, tmp);
+
+  return res;
 }
 
 #undef JS_OBJ

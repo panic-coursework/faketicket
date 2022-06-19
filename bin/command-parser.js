@@ -251,6 +251,7 @@ ${autogenDisclaimer}
 #include "parser.h"
 #include "response.h"
 #include "result.h"
+#include "run.h"
 #include "vector.h"
 
 namespace ${ns} {
