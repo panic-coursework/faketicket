@@ -246,13 +246,8 @@ auto command::run (const command::QueryTransfer &cmd)
   auto vTrainNum_To =
     Train::ixStop.findMany( std::hash<std::string>()(cmd.to) );
 
-  Vector<Train> TrainsFrom, TrainsTo;
-  for(auto &train_num: vTrainNum_From)
-    TrainsFrom.push_back( Train::get(train_num) );
-  for(auto &train_num: vTrainNum_To)
-    TrainsTo.push_back( Train::get(train_num) );
-
-  for(auto & train : TrainsFrom){
+  for(auto & trainPos : vTrainNum_From){
+    Train train = Train::get(trainPos);
     Section it;
     it.trainId = train.trainId;
     it.trainPos = train.id();
@@ -284,7 +279,8 @@ auto command::run (const command::QueryTransfer &cmd)
     }
   }
 
-  for(auto & train : TrainsTo){
+  for(auto trainPos : vTrainNum_To){
+    Train train = Train::get(trainPos);
     Section it;
     it.trainId = train.trainId;
     it.trainPos = train.id();
@@ -319,7 +315,7 @@ auto command::run (const command::QueryTransfer &cmd)
         it.Departure =  it.Departure + Duration(24 * 60);
         it.Arrival = it.Arrival + Duration(24 * 60);
       }
-      // std::cerr << "xxx " << it.trainId << it.res << std::string(it.Departure) << std::endl;
+      // ;// std::cerr << "xxx " << it.trainId << it.res << std::string(it.Departure) << std::endl;
 
       if( it.Departure.daysOverflow() < 0) continue;
       Vt[st_num].push_back(it);
@@ -328,7 +324,7 @@ auto command::run (const command::QueryTransfer &cmd)
   ////////////////////////////////////////////////////////////////
   // get ANS;
   Sol ANS(cmd.date);
-  std::cerr << "--------" << std::endl;
+  ;// std::cerr << "--------" << std::endl;
   for(int i = 1; i <= _no_st; ++ i){
     if( Vf[i].empty() || Vt[i].empty()) continue;
     sort(Vf[i].begin(), Vf[i].end(), Cmp([] (const Section &s1, const Section &s2) {
@@ -337,9 +333,9 @@ auto command::run (const command::QueryTransfer &cmd)
     sort(Vt[i].begin(), Vt[i].end(), Cmp([] (const Section &s1, const Section &s2) {
       return s1.Departure.withoutOverflow() < s2.Departure.withoutOverflow();
     }));
-    std::cerr << "--- f" << std::endl;
+    ;// std::cerr << "--- f" << std::endl;
     for (const auto &x : Vf[i]) x.output();
-    std::cerr << "--- t" << std::endl;
+    ;// std::cerr << "--- t" << std::endl;
     for (const auto &x : Vt[i]) x.output();
 
     SectionCmp cmp {cmd.sort};
@@ -355,15 +351,18 @@ auto command::run (const command::QueryTransfer &cmd)
     Section * _mid_to = nullptr;
     for(const auto fromTrain : Vf[i]){
       for(int mover = 0; mover < Vt[i].size(); ++mover){
-        std::cerr << formatDateTime(cmd.date, Vt[i][mover].Departure) << std::endl;
-        std::cerr << formatDateTime(cmd.date, fromTrain.Arrival) << std::endl;
+        ;// std::cerr << formatDateTime(cmd.date, Vt[i][mover].Departure) << std::endl;
+        ;// std::cerr << formatDateTime(cmd.date, fromTrain.Arrival) << std::endl;
         while (Vt[i][mover].Departure < fromTrain.Arrival) {
           if( Vt[i][mover].res ) {
-            std::cerr << "moving " << Vt[i][mover].trainId << std::endl;
+            ;// std::cerr << "moving " << Vt[i][mover].trainId << std::endl;
             Vt[i][mover].move_to_tomorrow();
             // TODO(perf)
             queue.push({ Vt[i][mover], &Vt[i][mover] });
-          } else Vt[i][mover].deleted = true;
+          } else {
+            Vt[i][mover].deleted = true;
+            break;
+          }
         }
       }
 
@@ -389,13 +388,13 @@ auto command::run (const command::QueryTransfer &cmd)
       }
       if (ans == nullptr) continue;
       Sol nw( cmd.date, fromTrain, *ans);
-      std::cerr << (ans->Arrival - fromTrain.Departure).minutes() << std::endl;
-      std::cerr << fromTrain.totalPrice << ' ' << ans->totalPrice << std::endl;
+      ;// std::cerr << (ans->Arrival - fromTrain.Departure).minutes() << std::endl;
+      ;// std::cerr << fromTrain.totalPrice << ' ' << ans->totalPrice << std::endl;
       fromTrain.output();
       ans->output();
       if( ANS.empty() || nw < ANS ) {
         ANS = nw;
-        std::cerr << "SET" << std::endl;
+        ;// std::cerr << "SET" << std::endl;
       }
     }
   }
@@ -406,7 +405,9 @@ auto command::run (const command::QueryTransfer &cmd)
 
 auto rollback::run (const rollback::AddTrain &log)
   -> Result<Unit, Exception> {
-  Train::get(log.id).destroy();
+  auto train = Train::get(log.id);
+  Train::ixId.remove(train);
+  train.destroy();
   return unit;
 }
 auto rollback::run (const rollback::DeleteTrain &log)
@@ -423,9 +424,12 @@ auto rollback::run (const rollback::ReleaseTrain &log)
   train.released = false;
   train.update();
 
-  Train::ixStop.remove(train.trainId.hash(), train.id());
+  for (int i = 0; i < train.stops.length; ++i) {
+    Train::ixStop.remove(train.stops[i].hash(), train.id());
+  }
   for (auto i = train.begin; i != train.end; ++i) {
     auto ride = RideSeats::ixRide.findOne({ log.id, i });
+    RideSeats::ixRide.remove(*ride);
     ride->destroy();
   }
 
@@ -443,7 +447,7 @@ void Range::output()const{
     formatDateTime(rd.ride.date, tr.edges[ixTo - 1].arrival) << ' '<<
     tr.totalPrice(ixFrom, ixTo) << ' ';
 
-  std::cout << rd.ticketsAvailable(ixFrom, ixTo) << std::endl;
+  std::cout << rd.ticketsAvailable(ixFrom, ixTo) << '\n';
 }
 
 } // namespace ticket

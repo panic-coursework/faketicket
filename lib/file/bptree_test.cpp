@@ -16,7 +16,7 @@ int main () {
     std::string index;
     cin >> cmd >> index;
 #ifdef DEBUG
-    std::cerr << "\n> " << cmd << ' ' << index << endl << endl;
+    ;// std::cerr << "\n> " << cmd << ' ' << index << endl << endl;
 #endif
     if (cmd == "insert") {
       int value;

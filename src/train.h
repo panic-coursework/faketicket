@@ -156,11 +156,11 @@ struct Section{
   }
 
   void output()const{
-    std::cerr << trainId << std::endl;
+    ;// std::cerr << trainId << std::endl;
     auto t = Train::get(trainPos);
-    std::cerr << t.stops[ixKey] << t.stops[ixMid] << std::endl;
-    std::cerr << (Departure.daysOverflow()) << ' ' << (Arrival.daysOverflow()) << std::endl;
-    std::cerr << std::string(Departure) << ' ' << std::string(Arrival) << std::endl;
+    ;// std::cerr << t.stops[ixKey] << t.stops[ixMid] << std::endl;
+    ;// std::cerr << (Departure.daysOverflow()) << ' ' << (Arrival.daysOverflow()) << std::endl;
+    ;// std::cerr << std::string(Departure) << ' ' << std::string(Arrival) << std::endl;
     // TO DO
   }
 };
@@ -205,8 +205,8 @@ struct Sol{
     tmp.output();
 
     train = Train::get(mid_to.trainPos);
-    std::cerr << std::string(train.begin) << std::string(train.end) << std::endl;
-    std::cerr << std::string(date + mid_to.Departure.daysOverflow()) << " " << mid_to.ixMid << train.trainId << std::endl;
+    ;// std::cerr << std::string(train.begin) << std::string(train.end) << std::endl;
+    ;// std::cerr << std::string(date + mid_to.Departure.daysOverflow()) << " " << mid_to.ixMid << train.trainId << std::endl;
     tmp.rd = *train.getRide(date + mid_to.Departure.daysOverflow(), mid_to.ixMid);
     tmp.ixFrom = mid_to.ixMid;
     tmp.ixTo = mid_to.ixKey;
