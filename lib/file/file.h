@@ -164,7 +164,7 @@ class File {
     return (index + 1) * szChunk;
   }
   std::fstream file_;
-  constexpr static int kSzCache_ = 1024;
+  constexpr static int kSzCache_ = 512;
   LruCache<size_t, kSzCache_, BeforeDestroy>
     cache_ { BeforeDestroy{this} };
 };

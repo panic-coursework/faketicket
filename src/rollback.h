@@ -73,7 +73,7 @@ struct LogEntryBase {
   static constexpr const char *filename = "rollback-log";
 };
 struct LastEntry {
-  int id;
+  int id = -1;
 };
 using LogEntry = file::Managed<LogEntryBase, LastEntry>;
 

@@ -248,7 +248,7 @@ class BpTree {
   auto split_ (Node &node, Node &parent, size_t ixChild) -> void {
     TICKET_ASSERT(node.shouldSplit());
 #ifdef TICKET_DEBUG_BPTREE
-    std::cerr << "[Split] " << node.id() << " (parent " << parent.id() << ")" << std::endl;
+    ;// std::cerr << "[Split] " << node.id() << " (parent " << parent.id() << ")" << std::endl;
 #endif
     if (node.type == kRoot) {
       // the split of the root node is a bit different from other nodes. it produces two extra subnodes.
@@ -306,7 +306,7 @@ class BpTree {
   auto merge_ (Node &node, Node &parent, size_t ixChild) -> void {
     TICKET_ASSERT(node.shouldMerge());
 #ifdef TICKET_DEBUG_BPTREE
-    std::cerr << "[Merge] " << node.id() << " (parent " << parent.id() << ")" << std::endl;
+    ;// std::cerr << "[Merge] " << node.id() << " (parent " << parent.id() << ")" << std::endl;
 #endif
     if (node.type == kRoot) {
       if (node.length() > 1 || node.leaf()) return;
@@ -525,14 +525,14 @@ class BpTree {
 #ifdef TICKET_DEBUG
   auto print_ (Node node) -> void {
     if (node.type == kRecord) {
-      std::cerr << "[Record " << node.id() << " (" << node.length() << "/" << 2 * RecordPayload::l - 1 << ")]";
-      for (int i = 0; i < node.length(); ++i) std::cerr << " (" << std::string(node.entries()[i].key) << ", " << node.entries()[i].value << ")";
-      std::cerr << std::endl;
+      ;// std::cerr << "[Record " << node.id() << " (" << node.length() << "/" << 2 * RecordPayload::l - 1 << ")]";
+      for (int i = 0; i < node.length(); ++i) ;// std::cerr << " (" << std::string(node.entries()[i].key) << ", " << node.entries()[i].value << ")";
+      ;// std::cerr << std::endl;
       return;
     }
-    std::cerr << "[Node " << node.id() << " (" << node.length() << "/" << 2 * IndexPayload::k - 1 << ")" << (node.leaf() ? " leaf" : "") << "]";
-    for (int i = 0; i < node.length(); ++i) std::cerr << " (" << std::string(node.splits()[i].key) << ", " << node.splits()[i].value << ") " << node.children()[i];
-    std::cerr << std::endl;
+    ;// std::cerr << "[Node " << node.id() << " (" << node.length() << "/" << 2 * IndexPayload::k - 1 << ")" << (node.leaf() ? " leaf" : "") << "]";
+    for (int i = 0; i < node.length(); ++i) ;// std::cerr << " (" << std::string(node.splits()[i].key) << ", " << node.splits()[i].value << ") " << node.children()[i];
+    ;// std::cerr << std::endl;
     for (int i = 0; i < node.length(); ++i) print_(Node::get(file_, node.children()[i]));
   }
 #endif
