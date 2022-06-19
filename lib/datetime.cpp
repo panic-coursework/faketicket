@@ -54,6 +54,7 @@ auto minutesFromHm (int hour, int minutes) -> int {
   return hour * kMinutesInHour + minutes;
 }
 auto dhmFromMinutes (int minutes) -> Triple<int, int, int> {
+  if (minutes < 0) return { -1, -1, -1 };
   int hours = minutes / kMinutesInHour;
   return {
     hours / kHoursInDay,

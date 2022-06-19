@@ -231,7 +231,7 @@ struct SectionCmp {
 command::SortType Sol::sort;
 auto command::run (const command::QueryTransfer &cmd)
   -> Result<Response, Exception> {
-    Sol::sort = cmd.sort;
+  Sol::sort = cmd.sort;
   ////////////////////////////////////////////////////////////////
   // generate: Vector< Vector<Section> > Vf, Vt;
   int _no_st = 0;
@@ -278,7 +278,7 @@ auto command::run (const command::QueryTransfer &cmd)
       }
       it.ixMid = j;
       it.Arrival = train.edges[j - 1].arrival
-        - (train.edges[it.ixKey - 1].departure
+        - (train.edges[it.ixKey].departure
         - it.Departure);
       it.totalPrice = add_price;
       Vf[st_num].push_back(it);
@@ -299,9 +299,10 @@ auto command::run (const command::QueryTransfer &cmd)
     // TO BE CHECKED
 
     long long add_price = 0;
+    long long keyPrice = train.totalPrice(0, it.ixKey);
     for(int j = 0; j < it.ixKey; ++ j){
-      add_price += train.edges[j].price;
       int &st_num = no_st[ std::hash<std::string>()(train.stops[j])];
+      // TODO(perf): continue
       if( ! st_num ) {
         st_num = ++ _no_st;
         Vf.push_back({});
@@ -313,11 +314,12 @@ auto command::run (const command::QueryTransfer &cmd)
       it.Departure = it.Arrival
         +(train.edges[j].departure
         - train.edges[ it.ixKey - 1 ].arrival);
-      // TO BE CHECKED: can Duration be negative?
-      it.totalPrice = add_price;
+      it.totalPrice = keyPrice - add_price;
+      add_price += train.edges[j].price;
 
       //Section validity check
       for(; it.res && it.Departure.daysOverflow() < 0;){
+        // TODO(perf)
         -- it.res;
         it.Departure =  it.Departure + Duration(24 * 60);
         it.Arrival = it.Arrival + Duration(24 * 60);
@@ -350,10 +352,15 @@ auto command::run (const command::QueryTransfer &cmd)
 
     int mover = 0;
     Section * _mid_to = nullptr;
-    for(int j = 0; j < Vf[i].size(); ++ j){
-      for(; mover + 1 < Vt[i].size()
-        && Vt[i][mover].Departure < Vf[i][j].Arrival;){
-          if( Vt[i][mover].res ) Vt[i][mover].move_to_tomorrow();
+    for(const auto fromTrain : Vf[i]){
+      for(; mover < Vt[i].size()
+        && Vt[i][mover].Departure < fromTrain.Arrival; ++mover){
+          // TODO(perf)
+          if( Vt[i][mover].res ) {
+            std::cerr << "moving " << Vt[i][mover].trainId << std::endl;
+            Vt[i][mover].move_to_tomorrow();
+            queue.push({ Vt[i][mover], &Vt[i][mover] });
+          }
           else Vt[i][mover].deleted = true;
         }
 
@@ -362,16 +369,19 @@ auto command::run (const command::QueryTransfer &cmd)
         auto hd = queue.top();
         queue.pop();
 
+        // cannot transfer to the same train
+        bool sameTrain =
+          fromTrain.trainPos == hd.first.trainPos;
+        if (sameTrain) continue;
         if( hd.second->deleted || (*hd.second) != hd.first)
           continue;
         ans = hd.second;
         break;
       }
-      Sol nw( cmd.date, Vf[i][j], *ans);
-      // cannot transfer to the same train
-      bool sameTrain
-        = nw.from_mid.trainPos == nw.mid_to.trainPos;
-      if( !sameTrain && ANS.empty() || nw < ANS ) ANS = nw;
+      if (ans == nullptr) continue;
+      Sol nw( cmd.date, fromTrain, *ans);
+      std::cerr << fromTrain.totalPrice << ' ' << ans->totalPrice << std::endl;
+      if( ANS.empty() || nw < ANS ) ANS = nw;
     }
   }
   ////////////////////////////////////////////////////////////////
