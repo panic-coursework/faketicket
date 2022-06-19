@@ -13,7 +13,6 @@ auto setTimestamp (int timestamp) -> void {
 
 auto rollback::log (
   const rollback::LogEntry::Content &content) -> void {
-  return;
   rollback::LogEntry entry;
   entry.timestamp = currentTime;
   entry.content = content;
@@ -30,9 +29,10 @@ auto command::run (const command::Rollback &cmd)
   User::clearSessions();
 
   int lastId = rollback::LogEntry::file.getMeta().id;
-  while (lastId > 0) {
-    auto entry = rollback::LogEntry::get(lastId--);
+  while (lastId >= 0) {
+    auto entry = rollback::LogEntry::get(lastId);
     if (entry.timestamp <= cmd.timestamp) break;
+    --lastId;
     entry.content.visit([] (const auto &cmd) {
       auto res = rollback::run(cmd);
       if (auto err = res.error()) {
