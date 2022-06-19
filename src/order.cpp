@@ -174,9 +174,13 @@ auto rollback::run (const rollback::BuyTicket &log)
   auto order = Order::get(log.id);
   if (order.status == Order::kPending) {
     Order::pendingOrders.remove(order);
+  } else {
+    auto ride = RideSeats::ixRide.findOne(order.ride);
+    ride->rangeAdd(order.seats, order.ixFrom, order.ixTo);
+    ride->update();
   }
   Order::ixUserId.remove(order);
-  order.destroy();
+  // order.destroy();
   return unit;
 }
 

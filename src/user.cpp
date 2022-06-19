@@ -164,7 +164,7 @@ auto rollback::run (const rollback::AddUser &log)
   -> Result<Unit, Exception> {
   auto user = User::get(log.id);
   User::ixUsername.remove(user);
-  user.destroy();
+  // user.destroy();
   return unit;
 }
 

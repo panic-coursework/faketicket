@@ -13,6 +13,7 @@ auto main () -> int {
   std::cin.tie(nullptr);
   std::cout.tie(nullptr);
 #endif // ONLINE_JUDGE
+// freopen("../tests/rollback/basic_3/7.in", "r", stdin);
 
   while (true) {
     // parse timestamp
