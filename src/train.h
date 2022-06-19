@@ -10,6 +10,7 @@
 #include "file/varchar.h"
 #include "optional.h"
 #include "parser.h"
+#include <string>
 
 namespace ticket {
 
@@ -130,21 +131,21 @@ struct Range{
 struct Section{
   using Id = file::Varchar<20>;
   Id trainId;
-  int trainPos;
-  int trainNum, ixKey, ixMid;
+  int trainPos = -1;
+  int ixKey, ixMid;
   Instant Departure, Arrival;// all based on cmd.date
   long long totalPrice;
   // Departure.daysOverflow() = 0
   int res;// Just for midSt->To
   //init: res = train.end - train.begin
 
-  bool deleted;
+  bool deleted = false;
 
-  Section(): trainNum(-1), deleted(false){}
   bool operator !=(const Section& other) const{
     return Departure != other.Departure
       || Arrival != other.Arrival
-      || totalPrice != other.totalPrice;
+      || totalPrice != other.totalPrice
+      || deleted != other.deleted;
   }
   bool move_to_tomorrow(){
     if( res <= 0 ) return false;
@@ -158,6 +159,8 @@ struct Section{
     std::cerr << trainId << std::endl;
     auto t = Train::get(trainPos);
     std::cerr << t.stops[ixKey] << t.stops[ixMid] << std::endl;
+    std::cerr << (Departure.daysOverflow()) << ' ' << (Arrival.daysOverflow()) << std::endl;
+    std::cerr << std::string(Departure) << ' ' << std::string(Arrival) << std::endl;
     // TO DO
   }
 };
@@ -175,7 +178,7 @@ struct Sol{
   Duration time()const{
     return mid_to.Arrival - from_mid.Departure;
   }
-  bool empty()const{ return from_mid.trainNum == -1;}
+  bool empty()const{ return from_mid.trainPos == -1;}
   bool operator<(const Sol &rhs)const{
     if(sort == command::kTime){
       if( time() != rhs.time() ) return time() < rhs.time();
@@ -186,8 +189,8 @@ struct Sol{
       if( time() != rhs.time() ) return time() < rhs.time();
     }
     if( from_mid.trainId != rhs.from_mid.trainId)
-      return from_mid.trainId < rhs.from_mid.trainId;
-    return mid_to.trainId < rhs.mid_to.trainId;
+      return from_mid.trainId.str() < rhs.from_mid.trainId.str();
+    return mid_to.trainId.str() < rhs.mid_to.trainId.str();
   }
   void output()const{
     Range tmp;
@@ -202,6 +205,8 @@ struct Sol{
     tmp.output();
 
     train = Train::get(mid_to.trainPos);
+    std::cerr << std::string(train.begin) << std::string(train.end) << std::endl;
+    std::cerr << std::string(date + mid_to.Departure.daysOverflow()) << " " << mid_to.ixMid << train.trainId << std::endl;
     tmp.rd = *train.getRide(date + mid_to.Departure.daysOverflow(), mid_to.ixMid);
     tmp.ixFrom = mid_to.ixMid;
     tmp.ixTo = mid_to.ixKey;

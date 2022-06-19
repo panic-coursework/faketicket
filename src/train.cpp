@@ -192,11 +192,12 @@ auto command::run (const command::QueryTicket &cmd)
     [&cmd] (const Range &r1, const Range &r2) {
       if( cmd.sort == command::kTime){
         if( r1.time != r2.time) return  r1.time < r2.time;
-        return r1.trainId < r2.trainId;
+        // TODO(perf): copy
+        return r1.trainId.str() < r2.trainId.str();
       }
       if( r1.totalPrice != r2.totalPrice)
         return  r1.totalPrice < r2.totalPrice;
-      return r1.trainId < r2.trainId;
+      return r1.trainId.str() < r2.trainId.str();
     }
   )
   );
@@ -213,18 +214,18 @@ struct SectionCmp {
     //  cmd.sort == kCost: smaller section.totalPrice, section.Departure, section.trainID
     if (type == command::kCost) {
       if (lhs.first.totalPrice != rhs.first.totalPrice) {
-        return lhs.first.totalPrice < rhs.first.totalPrice;
+        return lhs.first.totalPrice > rhs.first.totalPrice;
       }
     }
-    if (lhs.first.Departure != rhs.first.Departure) {
-      return lhs.first.Departure < rhs.first.Departure;
+    if (lhs.first.Arrival != rhs.first.Arrival) {
+      return lhs.first.Arrival > rhs.first.Arrival;
     }
     if (type == command::kTime) {
       if (lhs.first.totalPrice != rhs.first.totalPrice) {
-        return lhs.first.totalPrice < rhs.first.totalPrice;
+        return lhs.first.totalPrice > rhs.first.totalPrice;
       }
     }
-    return lhs.first.trainId < rhs.first.trainId;
+    return lhs.first.trainId.str() > rhs.first.trainId.str();
   }
 };
 
@@ -251,17 +252,15 @@ auto command::run (const command::QueryTransfer &cmd)
   for(auto &train_num: vTrainNum_To)
     TrainsTo.push_back( Train::get(train_num) );
 
-  for(int i = 0; i < TrainsFrom.size(); ++ i){
-    Train &train = TrainsFrom[i];
-
+  for(auto & train : TrainsFrom){
     Section it;
     it.trainId = train.trainId;
-    it.trainNum = i;
     it.trainPos = train.id();
     it.ixKey = *train.indexOfStop(cmd.from);
     if (it.ixKey == train.stops.length - 1) continue;
     it.Departure =
-      train.edges[ it.ixKey ].arrival.withoutOverflow();
+      train.edges[ it.ixKey ].departure.withoutOverflow();
+    // TODO(perf)
     if( ! train.getRide( cmd.date, it.ixKey) ) continue;
 
     //get st_num
@@ -285,22 +284,19 @@ auto command::run (const command::QueryTransfer &cmd)
     }
   }
 
-  for(int i = 0; i < TrainsTo.size(); ++ i){
-    Train &train = TrainsTo[i];
-
+  for(auto & train : TrainsTo){
     Section it;
     it.trainId = train.trainId;
-    it.trainNum = i;
     it.trainPos = train.id();
     it.ixKey = *train.indexOfStop(cmd.to);
+    it.res = train.end - train.begin;
     if (it.ixKey == 0) continue;
     it.Arrival = train.edges[it.ixKey - 1].arrival
       + Duration( (train.begin - cmd.date) * 24 * 60) ;
     // TO BE CHECKED
 
     long long add_price = 0;
-    long long keyPrice = train.totalPrice(0, it.ixKey);
-    for(int j = 0; j < it.ixKey; ++ j){
+    for(int j = it.ixKey - 1; j >= 0; --j){
       int &st_num = no_st[ std::hash<std::string>()(train.stops[j])];
       // TODO(perf): continue
       if( ! st_num ) {
@@ -309,13 +305,12 @@ auto command::run (const command::QueryTransfer &cmd)
         Vt.push_back({});
       }
 
-      it.res = train.end - train.begin;
       it.ixMid = j;
       it.Departure = it.Arrival
         +(train.edges[j].departure
         - train.edges[ it.ixKey - 1 ].arrival);
-      it.totalPrice = keyPrice - add_price;
       add_price += train.edges[j].price;
+      it.totalPrice = add_price;
 
       //Section validity check
       for(; it.res && it.Departure.daysOverflow() < 0;){
@@ -324,6 +319,7 @@ auto command::run (const command::QueryTransfer &cmd)
         it.Departure =  it.Departure + Duration(24 * 60);
         it.Arrival = it.Arrival + Duration(24 * 60);
       }
+      // std::cerr << "xxx " << it.trainId << it.res << std::string(it.Departure) << std::endl;
 
       if( it.Departure.daysOverflow() < 0) continue;
       Vt[st_num].push_back(it);
@@ -332,14 +328,19 @@ auto command::run (const command::QueryTransfer &cmd)
   ////////////////////////////////////////////////////////////////
   // get ANS;
   Sol ANS(cmd.date);
+  std::cerr << "--------" << std::endl;
   for(int i = 1; i <= _no_st; ++ i){
     if( Vf[i].empty() || Vt[i].empty()) continue;
     sort(Vf[i].begin(), Vf[i].end(), Cmp([] (const Section &s1, const Section &s2) {
-      return s1.Arrival.withoutOverflow() < s2.Arrival.withoutOverflow();
+      return s1.Arrival < s2.Arrival;
     }));
     sort(Vt[i].begin(), Vt[i].end(), Cmp([] (const Section &s1, const Section &s2) {
       return s1.Departure.withoutOverflow() < s2.Departure.withoutOverflow();
     }));
+    std::cerr << "--- f" << std::endl;
+    for (const auto &x : Vf[i]) x.output();
+    std::cerr << "--- t" << std::endl;
+    for (const auto &x : Vt[i]) x.output();
 
     SectionCmp cmp {cmd.sort};
     PriorityQueue<std::pair<Section, Section *>, SectionCmp>
@@ -353,35 +354,49 @@ auto command::run (const command::QueryTransfer &cmd)
     int mover = 0;
     Section * _mid_to = nullptr;
     for(const auto fromTrain : Vf[i]){
-      for(; mover < Vt[i].size()
-        && Vt[i][mover].Departure < fromTrain.Arrival; ++mover){
-          // TODO(perf)
+      for(int mover = 0; mover < Vt[i].size(); ++mover){
+        std::cerr << formatDateTime(cmd.date, Vt[i][mover].Departure) << std::endl;
+        std::cerr << formatDateTime(cmd.date, fromTrain.Arrival) << std::endl;
+        while (Vt[i][mover].Departure < fromTrain.Arrival) {
           if( Vt[i][mover].res ) {
             std::cerr << "moving " << Vt[i][mover].trainId << std::endl;
             Vt[i][mover].move_to_tomorrow();
+            // TODO(perf)
             queue.push({ Vt[i][mover], &Vt[i][mover] });
-          }
-          else Vt[i][mover].deleted = true;
+          } else Vt[i][mover].deleted = true;
         }
+      }
 
       Section * ans = nullptr;
       for(;! queue.empty() ;){
         auto hd = queue.top();
-        queue.pop();
+        hd.first.output();
+        // queue.pop();
 
         // cannot transfer to the same train
         bool sameTrain =
           fromTrain.trainPos == hd.first.trainPos;
-        if (sameTrain) continue;
-        if( hd.second->deleted || (*hd.second) != hd.first)
+        if (sameTrain) {
+          queue.pop();
           continue;
+        }
+        if( hd.second->deleted || (*hd.second) != hd.first) {
+          queue.pop();
+          continue;
+        }
         ans = hd.second;
         break;
       }
       if (ans == nullptr) continue;
       Sol nw( cmd.date, fromTrain, *ans);
+      std::cerr << (ans->Arrival - fromTrain.Departure).minutes() << std::endl;
       std::cerr << fromTrain.totalPrice << ' ' << ans->totalPrice << std::endl;
-      if( ANS.empty() || nw < ANS ) ANS = nw;
+      fromTrain.output();
+      ans->output();
+      if( ANS.empty() || nw < ANS ) {
+        ANS = nw;
+        std::cerr << "SET" << std::endl;
+      }
     }
   }
   ////////////////////////////////////////////////////////////////
