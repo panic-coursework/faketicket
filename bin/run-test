@@ -50,7 +50,7 @@ for i in $list; do
   outfile="$(tmp)"
   echo "about to run input #$i..."
   if [ $i = "$3" ]; then
-  valgrind "$exe" < "$basedir/$i.in" > "$outfile"
+  valgrind --num-callers=100 "$exe" < "$basedir/$i.in" > "$outfile"
   else
   /usr/bin/time -v "$exe" < "$basedir/$i.in" > "$outfile"
   fi

@@ -52,8 +52,8 @@ auto Train::getRide (Date date, int ixDeparture) const
 auto Ride::operator< (const Ride &rhs) const -> bool {
   // TODO(perf): is this optimization performed by
   // the compiler?
-  if (Less<>().ne(date, rhs.date)) return date < rhs.date;
-  return train < rhs.train;
+  if (train != rhs.train) return train < rhs.train;
+  return date < rhs.date;
 }
 
 auto RideSeatsBase::ticketsAvailable (int ixFrom, int ixTo)
@@ -93,6 +93,8 @@ auto command::run (const command::AddTrain &cmd)
   }
 
   train.save();
+  // if (train.trainId.str() == "RQBHVSMsFXrFa")
+  //   std::cerr << train.trainId << std::endl;
   Train::ixId.insert(train);
   rollback::log(rollback::AddTrain { train.id() });
 
@@ -106,6 +108,8 @@ auto command::run (const command::DeleteTrain &cmd)
   tr -> deleted = true;
   tr -> update();
   Train::ixId.remove(*tr);
+  // if (tr->trainId.str() == "RQBHVSMsFXrFa")
+  //   std::cerr << tr->trainId << std::endl;
   rollback::log(rollback::DeleteTrain { tr->id() });
 
   return unit;
@@ -131,6 +135,8 @@ auto command::run (const command::ReleaseTrain &cmd)
       rd.seatsRemaining.push(_seats);
     rd.ride.date = i;
     rd.save();
+    // if (rd.id() == 81)
+    //   std::cerr << rd.id() << std::endl;
     RideSeats :: ixRide.insert(rd);
   }
 
@@ -143,6 +149,8 @@ auto command::run (const command::QueryTrain &cmd)
   auto train = Train::ixId.findOne(cmd.id);
   if( ! train ) return Exception("No such train");
   if (!cmd.date.inRange(train->begin, train->end)) {
+  // auto ride = train->getRide( cmd.date);
+  // if (ride) std::cerr << ride->id() << ' ' << ride->ride.train << ' ' << train->id() << std::endl;
     return Exception("No such ride");
   }
 
@@ -406,6 +414,8 @@ auto command::run (const command::QueryTransfer &cmd)
 auto rollback::run (const rollback::AddTrain &log)
   -> Result<Unit, Exception> {
   auto train = Train::get(log.id);
+  // if (train.trainId.str() == "RQBHVSMsFXrFa")
+  //   std::cerr << train.trainId << std::endl;
   Train::ixId.remove(train);
   train.destroy();
   return unit;
@@ -427,9 +437,15 @@ auto rollback::run (const rollback::ReleaseTrain &log)
   for (int i = 0; i < train.stops.length; ++i) {
     Train::ixStop.remove(train.stops[i].hash(), train.id());
   }
-  for (auto i = train.begin; i != train.end; ++i) {
+  for (auto i = train.begin; i <= train.end; ++i) {
     auto ride = RideSeats::ixRide.findOne({ log.id, i });
+    // if (ride->id() == 133 || ride->id() == 146)
+    //   std::cerr << ride->id() << std::endl;
     RideSeats::ixRide.remove(*ride);
+    // auto ride2 = RideSeats::ixRide.findOne({ log.id, i });
+    // if (ride2) {
+    //   std::cerr << ride2->id() << '!' << std::endl;
+    // }
     ride->destroy();
   }
 
