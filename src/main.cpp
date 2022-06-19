@@ -30,7 +30,7 @@ auto main () -> int {
     std::getline(std::cin, input);
     auto cmd = ticket::command::parse(input);
     if (auto err = cmd.error()) {
-      std::cerr << err->what() << std::endl;
+      ;// std::cerr << err->what() << std::endl;
       return 1;
     }
 

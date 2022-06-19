@@ -52,7 +52,7 @@ for i in $list; do
   if [ $i = "$3" ]; then
   valgrind "$exe" < "$basedir/$i.in" > "$outfile"
   else
-  "$exe" < "$basedir/$i.in" > "$outfile"
+  /usr/bin/time -v "$exe" < "$basedir/$i.in" > "$outfile"
   fi
   difffile=$(tmp)
   if diff -w "$outfile" "$basedir/$i.out" > "$difffile"; then true; else
