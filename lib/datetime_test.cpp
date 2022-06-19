@@ -53,6 +53,9 @@ auto testInstant () -> void {
   assert((i1 + day).hour() == 2);
   assert((i1 + day).minute() == 10);
   assert((i1 + day + day).daysOverflow() == 2);
+  assert((i1 - day - day).daysOverflow() == -2);
+  assert((i1 - day - day).hour() == 2);
+  assert((i1 - day - day).minute() == 10);
   assert(cmp.equals(i1 + day + day - day, i1 + day));
   assert(cmp.equals(i1 + day - i1, day));
 }

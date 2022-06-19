@@ -1,5 +1,7 @@
 #include "datetime.h"
 
+#include <cmath>
+
 #include "utility.h"
 
 // to be optimized: inline these methods
@@ -54,7 +56,19 @@ auto minutesFromHm (int hour, int minutes) -> int {
   return hour * kMinutesInHour + minutes;
 }
 auto dhmFromMinutes (int minutes) -> Triple<int, int, int> {
-  if (minutes < 0) return { -1, -1, -1 };
+  if (minutes < 0) {
+    int days = -minutes / (kMinutesInHour * kHoursInDay);
+    int extraDay =
+      -minutes % (kMinutesInHour * kHoursInDay) == 0 ? 0 : 1;
+    int d = days + extraDay;
+    minutes += d * (kMinutesInHour * kHoursInDay);
+    int hours = minutes / kMinutesInHour;
+    return {
+      -d,
+      hours % kHoursInDay,
+      minutes % kMinutesInHour,
+    };
+  }
   int hours = minutes / kMinutesInHour;
   return {
     hours / kHoursInDay,
