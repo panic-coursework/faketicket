@@ -30,31 +30,42 @@ app.use((ctx, next) => {
 app.use(static(__dirname + '/../dist/'))
 app.listen(process.env.PORT || 8080)
 
-const requireLogin = (ctx, next) => {
+const requireLogin = async (ctx, next) => {
   const username = ctx.cookies.get('username')
   if (!username) {
     ctx.body = { error: 'not logged in' }
     return
   }
   ctx.username = username
-  return next()
+  await next()
+  if (ctx.body?.error?.includes('not logged in')) {
+    ctx.cookies.set('username', 'x', { httpOnly: false, expires: new Date(0) })
+  }
 }
+
+const usersLoggedIn = new Set()
 
 router.post('/api/login', ctx => {
   const { username, password } = ctx.request.body
   if (!username || !password) ctx.throw(400)
   try {
     ctx.body = ticket.login({ username, password })
+    usersLoggedIn.add(username)
     ctx.cookies.set('username', username, { httpOnly: false })
   } catch (e) {
+    if (usersLoggedIn.has(username) && String(e).includes('already logged in')) {
+      ctx.cookies.set('username', username, { httpOnly: false })
+      ctx.body = { success: true }
+      return
+    }
     ctx.body = { error: String(e) }
   }
 })
 
 router.post('/api/logout', requireLogin, ctx => {
   try {
-    ctx.body = ticket.logout({ username: ctx.username })
     ctx.cookies.set('username', 'x', { httpOnly: false, expires: new Date(0) })
+    ctx.body = { success: true }
   } catch (e) {
     ctx.body = { error: String(e) }
   }
