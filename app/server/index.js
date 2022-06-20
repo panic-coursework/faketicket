@@ -114,8 +114,8 @@ router.post('/api/trainadd', requireLogin, ctx => {
   const { trainId, type, seats, begin, end, stations, edges } = ctx.request.body
   const parseTime = time => {
     const re = /^([0-9]{2}):([0-9]){2}(?:\+([0-3]))?$/
-    const [ h, m, d ] = time.match(re)
-    return [ h, m, d || 0 ]
+    const [ _, h, m, d ] = time.match(re)
+    return [ h, m, d || 0 ].map(Number)
   }
   const minFromHmd = ([ h, m, d ]) => {
     return h * 60 + m + d * 1440
